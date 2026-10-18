@@ -308,6 +308,49 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
+## Uconnect — py-uconnect e hass-uconnect (Apache 2.0), evcc (MIT)
+
+<https://github.com/hass-uconnect/py-uconnect> ·
+<https://github.com/hass-uconnect/hass-uconnect> ·
+<https://github.com/evcc-io/evcc>
+
+Da py-uconnect e hass-uconnect (Apache License 2.0,
+<http://www.apache.org/licenses/LICENSE-2.0>, copyright dei rispettivi
+autori) vengono i fatti del protocollo Uconnect, riscritti da capo: gli
+indirizzi Gigya per marchio e regione e le loro chiavi pubbliche, i codici di
+marchio, gli indirizzi authz, channels e mfa con le loro x-api-key, le
+intestazioni, i percorsi di stato, posizione, serrature, PIN e comandi, e la
+scelta del tempo di ricarica per tipo di caricatore.
+
+Da evcc (`vehicle/fiat`, MIT) vengono il flusso di login da Gigya a Cognito
+senza l'SDK di Amazon, la firma SigV4 (riscritta in Python) con i suoi valori
+di prova registrati dall'SDK, la versione v2 dello stato e l'avviso sul
+«deep refresh», che sveglia l'auto e GdAAuto non usa.
+
+```
+MIT License
+
+Copyright (c) evcc.io (andig, naltatis, premultiply)
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
 ## Tesla — la documentazione ufficiale
 
 La Fleet API è documentata da Tesla su <https://developer.tesla.com/docs/fleet-api>.
