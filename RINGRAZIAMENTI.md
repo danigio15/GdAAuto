@@ -92,6 +92,43 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
+## pypolestar/pypolestar — licenza MIT
+
+<https://github.com/pypolestar/pypolestar>
+
+Da qui vengono i fatti del protocollo Polestar: l'indirizzo di Polestar ID, il
+client id dell'app e il suo indirizzo di ritorno, lo scope, il flusso PKCE col
+modulo del login, l'indirizzo GraphQL e il testo delle query
+`GetConsumerCarsV2` e `CarTelematicsV2` (ridotte a batteria e contachilometri),
+i nomi dei campi e gli stati della ricarica. I campioni delle prove
+(`tests/polestar_campioni.py`) sono i suoi fixture anonimi, senza immagini. Il
+codice di GdAAuto è scritto da capo. pypolestar/polestar_api (MIT, stesso
+autore) è stato guardato per l'uso, senza prenderne codice.
+
+```
+MIT License
+
+Copyright (c) 2023 Tuen Lee
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
 ## Tesla — la documentazione ufficiale
 
 La Fleet API è documentata da Tesla su <https://developer.tesla.com/docs/fleet-api>.
