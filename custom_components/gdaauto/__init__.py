@@ -15,13 +15,12 @@ from __future__ import annotations
 from dataclasses import dataclass
 import shutil
 
-from aiohttp import ClientSession
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady, ServiceValidationError
 from homeassistant.helpers import config_validation as cv, device_registry as dr
-from homeassistant.helpers.aiohttp_client import async_create_clientsession
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.typing import ConfigType
 import voluptuous as vol
 
@@ -59,7 +58,6 @@ CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 class Dati:
     auto: list[Auto]
     conto: Conto | None = None
-    sessione: ClientSession | None = None
 
 
 type GdaautoConfigEntry = ConfigEntry[Dati]
@@ -128,8 +126,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: GdaautoConfigEntry) -> b
 
 async def _avvia_cloud(hass: HomeAssistant, entry: GdaautoConfigEntry) -> Dati:
     modulo = marca(entry.data[CONF_MARCA])
-    # Una sessione sua: il TLS reciproco non va mescolato con quella di tutti.
-    sessione = async_create_clientsession(hass, auto_cleanup=False)
+    # La sessione di tutti va bene: il certificato si passa a ogni richiesta,
+    # e le connessioni con certificati diversi non si mescolano.
+    sessione = async_get_clientsession(hass)
     cliente = modulo.crea(sessione, dict(entry.data), cartella_certificati(hass, entry.entry_id), hass.config.language)
     try:
         await cliente.accedi()
@@ -139,15 +138,10 @@ async def _avvia_cloud(hass: HomeAssistant, entry: GdaautoConfigEntry) -> Dati:
         for a in auto:
             await a.async_config_entry_first_refresh()
     except (ErroreCredenziali, ErroreCertificato) as err:
-        await sessione.close()
         raise ConfigEntryAuthFailed(str(err)) from err
     except ErroreLeapmotor as err:
-        await sessione.close()
         raise ConfigEntryNotReady(str(err)) from err
-    except BaseException:
-        await sessione.close()
-        raise
-    return Dati(auto=auto, conto=conto, sessione=sessione)
+    return Dati(auto=auto, conto=conto)
 
 
 async def _avvia_ha(hass: HomeAssistant, entry: GdaautoConfigEntry) -> Dati:
@@ -171,8 +165,6 @@ async def async_unload_entry(hass: HomeAssistant, entry: GdaautoConfigEntry) -> 
     if ok:
         for a in entry.runtime_data.auto:
             await a.async_shutdown()
-        if entry.runtime_data.sessione is not None:
-            await entry.runtime_data.sessione.close()
     return ok
 
 

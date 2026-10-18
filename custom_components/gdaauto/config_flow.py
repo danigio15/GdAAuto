@@ -15,7 +15,7 @@ import uuid
 from homeassistant.config_entries import ConfigEntry, ConfigFlow, ConfigFlowResult, OptionsFlow
 from homeassistant.core import callback
 from homeassistant.helpers import device_registry as dr, entity_registry as er, selector
-from homeassistant.helpers.aiohttp_client import async_create_clientsession
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
 import voluptuous as vol
 
 from . import fonte_ha as f
@@ -98,7 +98,7 @@ class GdaautoConfigFlow(ConfigFlow, domain=DOMAIN):
     async def _prova(self, id_marca: str, dati: dict[str, Any]) -> tuple[dict[str, str], int]:
         """Entra davvero e conta le auto. Torna gli errori per il modulo."""
         cartella = self.hass.config.path(".storage", DOMAIN, f"prova-{uuid.uuid4().hex}")
-        sessione = async_create_clientsession(self.hass, auto_cleanup=False)
+        sessione = async_get_clientsession(self.hass)
         cliente = marca(id_marca).crea(sessione, dati, cartella, self.hass.config.language)
         try:
             await cliente.accedi()
@@ -110,7 +110,6 @@ class GdaautoConfigFlow(ConfigFlow, domain=DOMAIN):
         except ErroreLeapmotor:
             return {"base": "rete"}, 0
         finally:
-            await sessione.close()
             await self.hass.async_add_executor_job(shutil.rmtree, cartella, True)
         if not vetture:
             return {"base": "nessuna_auto"}, 0

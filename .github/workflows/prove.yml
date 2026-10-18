@@ -20,7 +20,7 @@ jobs:
         with:
           repository: danigio15/gdahomeapp
           path: sorelle/gdahomeapp
-          sparse-checkout: officina/custom_components/dashboardmodern/frontend/src/core
+          sparse-checkout: ponte/plancia/src/core
       - uses: actions/setup-python@v5
         with:
           python-version: "3.13"
@@ -44,4 +44,7 @@ jobs:
       - uses: hacs/action@main
         with:
           category: integration
-          ignore: brands
+          # La licenza è proprietaria (non SPDX) e i topic servono solo per
+          # entrare nell'elenco ufficiale di HACS: come repository
+          # personalizzata si installa lo stesso.
+          ignore: brands license topics
