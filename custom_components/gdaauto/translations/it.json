@@ -93,6 +93,13 @@
       "conferma_dispositivo": {
         "title": "{marchio}",
         "description": "Apri [questo link]({link}), entra col tuo account e conferma il codice **{codice}**. Poi torna qui e premi Invia."
+      },
+      "browser": {
+        "title": "Entra nel tuo account {marchio}",
+        "description": "{nota}\n\nApri [questo link]({link}) ed entra col tuo account {marchio}. Alla fine il browser prova ad aprire un indirizzo dell'app e non ci riesce, oppure mostra una pagina vuota: è giusto così. Copia quell'indirizzo (sul computer lo trovi negli strumenti per sviluppatori, F12, scheda **Rete**) e incollalo qui. Va bene anche solo il codice.\n\nIl codice vale pochi minuti. Email e password restano nel tuo browser: GdAAuto non le vede.",
+        "data": {
+          "codice": "Indirizzo o codice"
+        }
       }
     },
     "error": {

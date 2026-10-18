@@ -154,3 +154,52 @@ async def test_un_codice_mandato_per_email_si_chiede_nel_modulo(hass: HomeAssist
         )
         await hass.async_block_till_done()
         assert r["type"] is FlowResultType.CREATE_ENTRY
+
+
+async def test_una_marca_che_si_entra_dal_browser(hass: HomeAssistant) -> None:
+    from custom_components.gdaauto.marche.base import ACCESSO_CODICE_BROWSER
+
+    modulo = _modulo(ACCESSO_CODICE_BROWSER)
+    aperti: list[dict[str, Any]] = []
+
+    async def avvia_browser(_hass: HomeAssistant, dati: dict[str, Any]) -> Dispositivo:
+        aperti.append(dict(dati))
+        return Dispositivo(f"https://esempio.dev/login?regione={dati['regione']}", "", {"verifier": "V"})
+
+    async def completa_browser(_hass: HomeAssistant, dati: dict[str, Any], d: Dispositivo, incollato: str) -> Accesso:
+        codice = incollato.rsplit("code=", 1)[-1]
+        if codice != "BUONO":
+            raise ErroreCredenziali("codice scaduto")
+        return Accesso({**dati, "token": d.stato["verifier"] + codice}, [AUTO], "finta_browser", "Finta · browser")
+
+    modulo.avvia_browser, modulo.completa_browser = avvia_browser, completa_browser
+    modulo.CAMPI = (Campo("regione", scelte=(("eu", "Europa"), ("us", "Stati Uniti")), predefinito="eu"),)
+    with patch.dict(MARCHE, {"finta": modulo}), patch.dict(PER_ID, {"finta_brand": MARCHIO}):
+        r = await hass.config_entries.flow.async_init(DOMAIN, context={"source": config_entries.SOURCE_USER})
+        r = await hass.config_entries.flow.async_configure(r["flow_id"], {"marchio_scelto": "finta_brand"})
+        # Prima quello che serve al link, poi il browser.
+        assert r["step_id"] == "credenziali"
+        r = await hass.config_entries.flow.async_configure(r["flow_id"], {"regione": "us"})
+        assert r["step_id"] == "browser"
+        assert r["description_placeholders"]["link"] == "https://esempio.dev/login?regione=us"
+        assert r["description_placeholders"]["marchio"] == "Finta Brand"
+        r = await hass.config_entries.flow.async_configure(r["flow_id"], {"codice": "app://cb?code=VECCHIO"})
+        assert r["errors"] == {"base": "codice"}
+        r = await hass.config_entries.flow.async_configure(r["flow_id"], {"codice": "app://cb?code=BUONO"})
+        await hass.async_block_till_done()
+        assert r["type"] is FlowResultType.CREATE_ENTRY
+        assert r["data"]["token"] == "VBUONO"
+        assert r["data"]["regione"] == "us" and r["data"]["marchio"] == "finta-brand"
+        voce = r["result"]
+
+        # Il reauth riapre il browser coi dati di prima, senza richiederli.
+        r = await hass.config_entries.flow.async_init(
+            DOMAIN,
+            context={"source": config_entries.SOURCE_REAUTH, "entry_id": voce.entry_id},
+            data=dict(voce.data),
+        )
+        assert r["step_id"] == "browser"
+        assert aperti[-1]["regione"] == "us"
+        r = await hass.config_entries.flow.async_configure(r["flow_id"], {"codice": "BUONO"})
+        assert r["type"] is FlowResultType.ABORT
+        assert r["reason"] == "reauth_successful"

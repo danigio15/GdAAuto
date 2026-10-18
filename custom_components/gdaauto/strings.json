@@ -93,6 +93,13 @@
       "conferma_dispositivo": {
         "title": "{marchio}",
         "description": "Open [this link]({link}), sign in and confirm the code **{codice}**. Then come back here and press Submit."
+      },
+      "browser": {
+        "title": "Sign in to your {marchio} account",
+        "description": "{nota}\n\nOpen [this link]({link}) and sign in to your {marchio} account. At the end the browser tries to open an app address and fails, or shows a blank page: that is expected. Copy that address (on a computer it is in the developer tools, F12, **Network** tab) and paste it here. The code alone works too.\n\nThe code lasts a few minutes. Email and password stay in your browser: GdAAuto never sees them.",
+        "data": {
+          "codice": "Address or code"
+        }
       }
     },
     "error": {

@@ -242,6 +242,11 @@ class GdaautoConfigFlow(config_entry_oauth2_flow.AbstractOAuth2FlowHandler, doma
             return await self.async_step_credenziali()
         if accesso == ACCESSO_OAUTH_HA:
             return await self.async_step_pick_implementation()
+        if accesso == ACCESSO_CODICE_BROWSER and hasattr(modulo, "avvia_browser"):
+            # Prima quello che serve per costruire il link (la regione…), poi il browser.
+            if [c for c in modulo.CAMPI if c.nome not in self._dati]:
+                return await self.async_step_credenziali()
+            return await self._apri_il_browser()
         if accesso == ACCESSO_CODICE_BROWSER:
             self._stellantis = {k: v for k, v in self._dati.items() if k == stellantis.CONF_APP}
             if stellantis.CONF_APP in self._stellantis:
@@ -280,6 +285,9 @@ class GdaautoConfigFlow(config_entry_oauth2_flow.AbstractOAuth2FlowHandler, doma
                     self._dati = dati
                     self._dispositivo_login = await modulo.avvia_dispositivo(self.hass, dati)
                     return await self.async_step_conferma_dispositivo()
+                if modulo.ACCESSO == ACCESSO_CODICE_BROWSER:
+                    self._dati = dati
+                    return await self._apri_il_browser()
                 accesso = await modulo.prova_accesso(self.hass, dati)
             except FileIllegibile:
                 errori["base"] = "file"
@@ -348,6 +356,9 @@ class GdaautoConfigFlow(config_entry_oauth2_flow.AbstractOAuth2FlowHandler, doma
         modulo = self._modulo()
         if modulo.ACCESSO == ACCESSO_OAUTH_HA:
             return await self.async_step_reauth_tesla()
+        if modulo.ACCESSO == ACCESSO_CODICE_BROWSER and hasattr(modulo, "avvia_browser"):
+            self._dati = dict(dati)
+            return await self._apri_il_browser()
         if modulo.ACCESSO == ACCESSO_CODICE_BROWSER:
             self._stellantis = {
                 stellantis.CONF_APP: dati[stellantis.CONF_APP],
@@ -472,6 +483,46 @@ class GdaautoConfigFlow(config_entry_oauth2_flow.AbstractOAuth2FlowHandler, doma
             data_schema=schema,
             errors=errori,
             description_placeholders={"link": stellantis.indirizzo_login(app, paese)},
+        )
+
+    # --- le marche che si entrano dal browser -------------------------------------------
+
+    async def _apri_il_browser(self) -> ConfigFlowResult:
+        modulo = self._modulo()
+        try:
+            self._dispositivo_login = await modulo.avvia_browser(self.hass, self._dati)
+        except ErroreMarca:
+            return self.async_abort(reason="rete")
+        return await self.async_step_browser()
+
+    async def async_step_browser(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
+        """Il login fatto nel browser: si incolla l'indirizzo finale, o solo il codice."""
+        modulo = self._modulo()
+        assert self._dispositivo_login is not None
+        errori: dict[str, str] = {}
+        if user_input is not None:
+            try:
+                accesso = await modulo.completa_browser(
+                    self.hass, self._dati, self._dispositivo_login, str(user_input["codice"]).strip()
+                )
+            except ErroreCredenziali:
+                errori["base"] = "codice"
+            except ErroreMarca as err:
+                errori["base"] = _errore(err)
+            else:
+                if not accesso.vetture:
+                    errori["base"] = "nessuna_auto"
+                else:
+                    return await self._fine_accesso(accesso)
+        return self.async_show_form(
+            step_id="browser",
+            data_schema=vol.Schema({vol.Required("codice"): selector.TextSelector()}),
+            errors=errori,
+            description_placeholders={
+                "link": self._dispositivo_login.link,
+                "marchio": self._nome_marchio,
+                "nota": self._nota(modulo),
+            },
         )
 
     # --- un'auto che c'è già in Home Assistant ------------------------------------------
