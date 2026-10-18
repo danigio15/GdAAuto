@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.venv/
+venv/
+sorelle/
+# I certificati dell'app Leapmotor non si pubblicano mai.
+*.pem
+*.p12

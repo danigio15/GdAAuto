@@ -1,0 +1,210 @@
+Licenza d'uso di GdAAuto
+Versione 1.0 — in vigore dal 18 ottobre 2026
+
+Copyright (c) 2026 Giovanni d'Aniello. Tutti i diritti riservati.
+
+Distribuito da CRV IMMOBILIARE S.R.L., Viale della Libertà 24,
+81031 Aversa (CE), Italia — P. IVA e C.F. 03719610614.
+
+Questa è una licenza proprietaria. Il codice è pubblico perché chiunque possa
+leggerlo e controllare cosa fa ("source available"), ma questa NON è una
+licenza open source e non è approvata dalla Open Source Initiative. Non si
+concede nessun diritto oltre a quelli scritti qui, nemmeno in modo implicito.
+
+Il testo che vale è quello italiano; la traduzione inglese, in fondo, serve a
+chi non legge l'italiano.
+
+1. DEFINIZIONI
+
+   «Software»: il contenuto della repository
+   https://github.com/danigio15/gdaauto — l'integrazione GdAAuto per Home
+   Assistant, con il codice sorgente, le risorse, il logo e la
+   documentazione.
+
+   «Titolare»: Giovanni d'Aniello, autore del Software e titolare dei diritti
+   d'autore su di esso.
+
+   «Distributore»: CRV IMMOBILIARE S.R.L., che per accordo con il Titolare
+   distribuisce il Software.
+
+   «Repository»: la repository indicata sopra.
+
+   «Tu»: la persona fisica o giuridica che usa il Software o esercita i
+   permessi di questa licenza.
+
+   «Installatore autorizzato»: chi ha ricevuto per iscritto dal Distributore
+   l'accesso al programma per gli installatori.
+
+2. COSA PUOI FARE
+
+   Se rispetti questa licenza, il Titolare ti concede il permesso, non
+   esclusivo, non trasferibile, revocabile e gratuito, di:
+
+   (a) installare e usare il Software sulle istanze di Home Assistant che
+       possiedi o amministri, per le tue esigenze personali o per quelle
+       della tua attività;
+
+   (b) scaricare e leggere il codice sorgente, per controllare cosa fa il
+       Software con il tuo veicolo, con la tua posizione, con i tuoi dati
+       e con le credenziali dei servizi dei costruttori;
+
+   (c) modificare la copia che hai installato per usarla tu, purché la copia
+       modificata non sia distribuita né resa disponibile ad altri, e purché
+       sia rispettata la Sezione 3(e);
+
+   (d) se sei un Installatore autorizzato, installare, configurare e assistere
+       il Software per i tuoi clienti, alle condizioni che il Distributore ti
+       ha dato per iscritto.
+
+3. COSA NON PUOI FARE
+
+   Salvo quanto permettono le Sezioni 2 e 4 o le norme di legge inderogabili,
+   non puoi:
+
+   (a) ridistribuire, pubblicare, duplicare online, ricaricare altrove,
+       installare per altri o rendere comunque disponibile a terzi il Software
+       o una sua parte, in forma sorgente o compilata, modificata o no, a
+       pagamento o gratis;
+
+   (b) pubblicare il Software, o un'app o un'integrazione che ne derivi, in un
+       negozio di applicazioni, in un archivio di pacchetti, in un archivio
+       HACS o in un canale di distribuzione simile;
+
+   (c) fare un fork della Repository, ripubblicarla o riprodurla in altro modo
+       come copia pubblica a sé stante, salvo quanto permette la Sezione 4;
+
+   (d) distribuire opere derivate, adattamenti, traduzioni, versioni con un
+       altro marchio o versioni modificate del Software;
+
+   (e) togliere, alterare, nascondere o aggirare gli avvisi di copyright e di
+       licenza e le attribuzioni contenuti nel Software o prodotti da esso,
+       comprese quelle dei componenti di terzi elencati nella Sezione 6;
+       aggirare, disattivare o falsificare i controlli delle funzioni a
+       pagamento (licenze, codici regalo, abbonamenti); o presentare il
+       Software, o una sua parte, come non proveniente dal Titolare;
+
+   (f) concedere in sublicenza, vendere, noleggiare o dare in locazione il
+       Software, o includerlo in un prodotto a pagamento, in un servizio
+       ospitato per altri o in un'offerta commerciale di installazione,
+       integrazione o assistenza, salvo quanto la Sezione 2(d) permette agli
+       Installatori autorizzati;
+
+   (g) usare i nomi «GdAAuto», «gdanav» e «GdAHome», il logo o i marchi del
+       Software, o nomi che si possano confondere con questi, per indicare un
+       derivato, un prodotto concorrente o un servizio.
+
+   Questa Sezione non limita gli atti che la legge consente comunque, anche
+   contro un contratto, come la decompilazione per l'interoperabilità
+   prevista dagli articoli 64-ter e 64-quater della legge 22 aprile 1941,
+   n. 633.
+
+4. FORK E CONTRIBUTI
+
+   Finché la Repository è pubblica su GitHub, i Termini di servizio di GitHub
+   permettono a chiunque, tecnicamente, di vederla e di farne un fork. Questa
+   possibilità tecnica non dà, da sola, nessun diritto di usare, tenere o
+   pubblicare la copia così creata. Perciò, finché la Repository è pubblica:
+
+   (a) un fork è permesso solo come mezzo tecnico per preparare un contributo
+       da proporre alla Repository con una pull request;
+
+   (b) quel fork non deve essere modificato oltre quanto serve al contributo,
+       non deve essere pubblicizzato, distribuito o presentato come un
+       progetto a sé, e va cancellato quando la pull request è stata unita o
+       chiusa;
+
+   (c) ogni altro uso di un fork, compreso il semplice tenerlo pubblico come
+       copia a sé stante del Software, è una distribuzione ed è vietato dalla
+       Sezione 3.
+
+   Chi propone un contributo alla Repository concede al Titolare una licenza
+   perpetua, mondiale, irrevocabile, gratuita e sublicenziabile per usare,
+   modificare, pubblicare e distribuire quel contributo come parte del
+   Software, con questa licenza o con qualunque altra il Titolare scelga, e
+   dichiara di avere il diritto di concederla.
+
+5. SERVIZI DEI COSTRUTTORI E COMANDI ALL'AUTO
+
+   Il Software non è prodotto, approvato né sostenuto dai costruttori dei
+   veicoli (tra cui Leapmotor, Tesla, Stellantis) né dai loro servizi. Per
+   alcune marche il Software parla con servizi del costruttore non
+   documentati pubblicamente: quei servizi possono cambiare, smettere di
+   funzionare o limitare l'account senza preavviso, e le loro condizioni
+   d'uso restano a carico tuo. Usare un account dedicato è una scelta tua.
+
+   I comandi che il Software può dare al veicolo (chiusura, apertura, clima,
+   ricarica, destinazione) agiscono su un veicolo vero. Aprire il veicolo da
+   lontano è spento finché non lo accendi tu. Dai un comando solo quando sai
+   che è sicuro farlo, e controlla le automazioni che lo danno al posto tuo.
+
+6. SOFTWARE E DATI DI TERZI
+
+   Il Software contiene parti derivate da componenti open source di terzi,
+   ognuno con la sua licenza, che resta com'è: sono elencati, con i loro
+   avvisi, nel file RINGRAZIAMENTI.md della Repository. Questa licenza non
+   limita i diritti che quelle licenze danno su quelle parti.
+
+7. CESSAZIONE
+
+   I permessi della Sezione 2 cessano automaticamente se violi questa
+   licenza. Da quel momento devi smettere di usare il Software e cancellarne
+   tutte le copie che hai, salvo quelle che la legge ti obbliga a tenere.
+   Permessi più ampi — commerciali, di ridistribuzione o con un marchio
+   proprio — si concedono solo per iscritto; le richieste vanno al
+   Distributore, all'indirizzo domotica@crvgroup.it.
+
+8. NESSUNA GARANZIA
+
+   Nei limiti consentiti dalla legge, il Software è fornito «così com'è»,
+   senza garanzie di alcun tipo, espresse o implicite, comprese quelle di
+   commerciabilità, di idoneità a uno scopo particolare e di non violazione
+   di diritti altrui. Non va usato per la sicurezza delle persone, né dove un
+   suo guasto possa causare lesioni o danni, compreso il restare senza carica.
+
+9. LIMITAZIONE DI RESPONSABILITÀ
+
+   Nei limiti consentiti dalla legge, il Titolare e il Distributore non
+   rispondono di pretese, danni o altre responsabilità, contrattuali,
+   extracontrattuali o di altro tipo, che derivino dal Software, dal suo uso
+   o da altre operazioni che lo riguardano.
+
+   Questa licenza non esclude né limita le responsabilità che la legge non
+   permette di escludere o limitare, comprese quelle per dolo o colpa grave
+   (articolo 1229 del codice civile) e per i danni alla persona.
+
+10. DIRITTI DEI CONSUMATORI
+
+   Se usi il Software come consumatore, questa licenza non tocca i diritti
+   che ti riconosce la legge a tutela dei consumatori, compreso il Codice del
+   consumo (decreto legislativo 6 settembre 2005, n. 206): in caso di
+   contrasto, prevalgono quelli.
+
+11. LEGGE APPLICABILE E FORO
+
+   Questa licenza è regolata dalla legge italiana, senza applicare le sue
+   norme sui conflitti di leggi. Per le controversie con chi non è
+   consumatore è competente in via esclusiva il Tribunale di Napoli Nord; per
+   i consumatori resta il foro del luogo in cui risiedono. Se una clausola è
+   nulla o inefficace, le altre restano valide.
+
+
+-------------------------------------------------------------------------------
+
+GdAAuto License — English summary
+(for reference only: the Italian text above is the license and prevails)
+
+Copyright (c) 2026 Giovanni d'Aniello. All rights reserved. Distributed by
+CRV IMMOBILIARE S.R.L., Aversa (CE), Italy.
+
+This is a proprietary, source-available license, not an open source one. You
+may install and use GdAAuto on Home Assistant instances you own or
+administer, read its source and modify your own installed copy for your own
+use. You may not redistribute it, publish it or a derivative to a store, a
+package or HACS repository, keep a public fork other than to propose a pull
+request, sublicense or sell it, or use the names GdAAuto, gdanav or GdAHome
+for another product. GdAAuto is not made, endorsed or supported by any
+vehicle manufacturer; manufacturer services may change or restrict accounts
+without notice; remote commands act on a real vehicle and remote unlock is
+off until you turn it on. Third-party open source parts keep their own
+licenses, listed in RINGRAZIAMENTI.md. No warranty, limited liability,
+consumer rights unaffected, Italian law, as written in the Italian text.

@@ -1,0 +1,287 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "GdAAuto",
+        "description": "Where does your car come from?",
+        "menu_options": {
+          "leapmotor": "Leapmotor",
+          "home_assistant": "It's already in Home Assistant (Tesla, Stellantis, Kia, BMW…)"
+        }
+      },
+      "leapmotor": {
+        "title": "Leapmotor",
+        "description": "Use a **dedicated** Leapmotor account with the car shared from your main account: the cloud keeps one session per account, and sharing it would log out the phone app.\n\nThe Leapmotor app certificate and key are not public: paste them here, or put them as `app_cert.pem` and `app_key.pem` in `{cartella}`.",
+        "data": {
+          "email": "Leapmotor account email",
+          "password": "Password",
+          "cert_app": "App certificate (app_cert.pem)",
+          "chiave_app": "App key (app_key.pem)"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Sign in to Leapmotor again",
+        "description": "The password for {email} no longer works. Enter it again; the certificate is only needed if it changed.",
+        "data": {
+          "password": "Password",
+          "cert_app": "App certificate (app_cert.pem)",
+          "chiave_app": "App key (app_key.pem)"
+        }
+      },
+      "home_assistant": {
+        "title": "A car already in Home Assistant",
+        "description": "Pick the car's device, the one created by its integration (Tesla, Stellantis, Kia, BMW, Renault…). In the next step GdAAuto suggests the entities by itself.",
+        "data": {
+          "dispositivo": "Car device"
+        }
+      },
+      "entita": {
+        "title": "The car's entities",
+        "description": "I recognised {trovate}. Check and fix them: only the battery is required.",
+        "data": {
+          "nome": "Car name",
+          "batteria": "Battery",
+          "autonomia": "Range",
+          "odometro": "Odometer",
+          "velocita": "Speed",
+          "in_carica": "Charging",
+          "cavo": "Charger connected",
+          "potenza_ricarica": "Charging power",
+          "tempo_ricarica": "Charging time remaining",
+          "temperatura_batteria": "Battery temperature",
+          "temperatura_interna": "Interior temperature",
+          "temperatura_esterna": "Outside temperature",
+          "limite": "Charge limit",
+          "serratura": "Lock",
+          "clima": "Climate",
+          "interruttore_ricarica": "Charging switch",
+          "trova": "Find button (horn/lights)",
+          "posizione": "Location"
+        }
+      }
+    },
+    "error": {
+      "credenziali": "Email or password rejected by the cloud.",
+      "certificato": "The app certificate or key cannot be read, or the cloud rejects them.",
+      "certificato_mancante": "The Leapmotor app certificate and key are required.",
+      "rete": "The cloud does not respond. Try again shortly.",
+      "nessuna_auto": "The account has no cars, not even shared ones.",
+      "dispositivo": "The device no longer exists.",
+      "gia_gdaauto": "This is already a GdAAuto device: pick the one from the car's own integration.",
+      "batteria": "At least the battery is required."
+    },
+    "abort": {
+      "already_configured": "This car or account is already set up.",
+      "reauth_successful": "Done: signed in again."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "GdAAuto",
+        "description": "The PIN is needed for commands (lock, climate, charging). Remote unlock stays off until you enable it here.",
+        "data": {
+          "pin": "Vehicle PIN",
+          "intervallo_minuti": "How often to read the parked car",
+          "intervallo_in_moto_secondi": "How often while driving or charging",
+          "risparmio": "Read less often when locked and unplugged",
+          "comandi_attivi": "Enabled commands"
+        }
+      }
+    }
+  },
+  "selector": {
+    "comandi_attivi": {
+      "options": {
+        "trova": "Find the car (horn and lights)",
+        "clima": "Climate",
+        "ricarica": "Start and stop charging",
+        "limite_ricarica": "Charge limit",
+        "destinazione": "Send a destination to the car's navigation",
+        "apri": "Unlock the car remotely"
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "batteria": {
+        "name": "Battery"
+      },
+      "autonomia": {
+        "name": "Range"
+      },
+      "odometro": {
+        "name": "Odometer"
+      },
+      "velocita": {
+        "name": "Speed"
+      },
+      "potenza": {
+        "name": "Power"
+      },
+      "potenza_ricarica": {
+        "name": "Charging power"
+      },
+      "tempo_ricarica": {
+        "name": "Charging time remaining"
+      },
+      "energia_residua": {
+        "name": "Remaining energy"
+      },
+      "stato_ricarica": {
+        "name": "Charge state",
+        "state": {
+          "non_in_carica": "Not charging",
+          "in_carica": "Charging",
+          "completata": "Complete",
+          "errore": "Error",
+          "programmata": "Scheduled",
+          "rigenerazione": "Regenerating",
+          "in_pausa": "Paused"
+        }
+      },
+      "marcia": {
+        "name": "Gear",
+        "state": {
+          "parcheggio": "P",
+          "avanti": "D",
+          "folle": "N",
+          "retromarcia": "R"
+        }
+      },
+      "temperatura_batteria": {
+        "name": "Battery temperature"
+      },
+      "temperatura_interna": {
+        "name": "Interior temperature"
+      },
+      "temperatura_esterna": {
+        "name": "Outside temperature"
+      },
+      "pneumatici_ant_sx": {
+        "name": "Tyre front left"
+      },
+      "pneumatici_ant_dx": {
+        "name": "Tyre front right"
+      },
+      "pneumatici_post_sx": {
+        "name": "Tyre rear left"
+      },
+      "pneumatici_post_dx": {
+        "name": "Tyre rear right"
+      },
+      "ultimo_aggiornamento": {
+        "name": "Last update"
+      }
+    },
+    "binary_sensor": {
+      "in_carica": {
+        "name": "Charging"
+      },
+      "cavo_collegato": {
+        "name": "Charger connected"
+      },
+      "portiere": {
+        "name": "Doors"
+      },
+      "bagagliaio": {
+        "name": "Trunk"
+      },
+      "finestrini": {
+        "name": "Windows"
+      },
+      "quadro": {
+        "name": "Ignition"
+      },
+      "clima_acceso": {
+        "name": "Climate on"
+      },
+      "sentinella": {
+        "name": "Sentry mode"
+      },
+      "serratura": {
+        "name": "Lock"
+      }
+    },
+    "lock": {
+      "serratura": {
+        "name": "Lock"
+      }
+    },
+    "switch": {
+      "clima": {
+        "name": "Climate"
+      },
+      "comando_ricarica": {
+        "name": "Charge control"
+      }
+    },
+    "number": {
+      "limite_ricarica": {
+        "name": "Charge limit"
+      }
+    },
+    "button": {
+      "aggiorna": {
+        "name": "Refresh"
+      },
+      "trova": {
+        "name": "Find car"
+      }
+    },
+    "device_tracker": {
+      "posizione": {
+        "name": "Location"
+      }
+    }
+  },
+  "exceptions": {
+    "comando_spento": {
+      "message": "The “{comando}” command is not available for this car, or it is disabled in the GdAAuto options."
+    },
+    "pin": {
+      "message": "PIN: {errore}"
+    },
+    "nessuna_auto": {
+      "message": "No GdAAuto car found."
+    }
+  },
+  "services": {
+    "invia_destinazione": {
+      "name": "Send a destination",
+      "description": "Sends an address to the car's navigation.",
+      "fields": {
+        "dispositivo": {
+          "name": "Car",
+          "description": "Without it, to every car."
+        },
+        "nome": {
+          "name": "Name",
+          "description": "The place name."
+        },
+        "latitudine": {
+          "name": "Latitude",
+          "description": "Decimal degrees."
+        },
+        "longitudine": {
+          "name": "Longitude",
+          "description": "Decimal degrees."
+        },
+        "indirizzo": {
+          "name": "Address",
+          "description": "Optional."
+        }
+      }
+    },
+    "aggiorna": {
+      "name": "Refresh",
+      "description": "Reads the car now (at most every 30 seconds).",
+      "fields": {
+        "dispositivo": {
+          "name": "Car",
+          "description": "Without it, every car."
+        }
+      }
+    }
+  }
+}

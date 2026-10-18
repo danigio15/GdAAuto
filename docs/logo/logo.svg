@@ -1,0 +1,152 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <style>
+      @font-face { font-family: "Archivo"; src: url("archivo-variabile.woff2") format("woff2"); font-weight: 100 900; font-stretch: 62% 125%; }
+      .titolo { font-family: "Archivo", "Inter Display", sans-serif; font-weight: 900; font-stretch: 112%; }
+      .scritta { font-family: "Archivo", "Inter Display", sans-serif; font-weight: 800; font-stretch: 118%; letter-spacing: 6px; }
+    </style>
+    <radialGradient id="fondo" cx="50%" cy="40%" r="70%">
+      <stop offset="0" stop-color="#16295a"/>
+      <stop offset="0.55" stop-color="#0a1430"/>
+      <stop offset="1" stop-color="#03060f"/>
+    </radialGradient>
+    <linearGradient id="bordo" x1="0" y1="0" x2="1" y2="0.15">
+      <stop offset="0" stop-color="#2f86ff"/>
+      <stop offset="0.48" stop-color="#5aa2ff"/>
+      <stop offset="0.62" stop-color="#ffb357"/>
+      <stop offset="1" stop-color="#ff8a1f"/>
+    </linearGradient>
+    <linearGradient id="strada" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#3b8cff"/>
+      <stop offset="0.55" stop-color="#7fb6ff"/>
+      <stop offset="0.75" stop-color="#ffb04d"/>
+      <stop offset="1" stop-color="#ff8a1f"/>
+    </linearGradient>
+    <linearGradient id="blu" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#d9ebff"/>
+      <stop offset="0.28" stop-color="#7db4ff"/>
+      <stop offset="0.6" stop-color="#2f74e8"/>
+      <stop offset="1" stop-color="#173f96"/>
+    </linearGradient>
+    <linearGradient id="ambra" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffe7c2"/>
+      <stop offset="0.3" stop-color="#ffb860"/>
+      <stop offset="0.62" stop-color="#ff8a1f"/>
+      <stop offset="1" stop-color="#b8520a"/>
+    </linearGradient>
+    <linearGradient id="lampo" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.5" stop-color="#bfe0ff"/>
+      <stop offset="1" stop-color="#4f9bff"/>
+    </linearGradient>
+    <filter id="alone" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="14"/>
+    </filter>
+    <filter id="neon" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="5" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="rilievo" x="-20%" y="-20%" width="140%" height="150%">
+      <feDropShadow dx="0" dy="14" stdDeviation="10" flood-color="#000" flood-opacity="0.75"/>
+    </filter>
+    <clipPath id="piastra"><rect x="56" y="56" width="912" height="912" rx="200"/></clipPath>
+  </defs>
+
+  <rect width="1024" height="1024" fill="#000"/>
+
+  <!-- la piastra, col bordo che si accende blu a sinistra e ambra a destra -->
+  <rect x="56" y="56" width="912" height="912" rx="200" fill="none" stroke="url(#bordo)" stroke-width="34" opacity="0.75" filter="url(#alone)"/>
+  <rect x="56" y="56" width="912" height="912" rx="200" fill="url(#fondo)"/>
+
+  <g clip-path="url(#piastra)">
+    <!-- l'orizzonte: colline e una città lontana -->
+    <path d="M56 330 L170 268 L250 300 L360 240 L470 292 L560 250 L660 296 L770 236 L880 282 L968 250"
+          fill="none" stroke="#2f6fd6" stroke-width="3" opacity="0.55"/>
+    <g fill="none" stroke="#3d7fe6" stroke-width="3" opacity="0.5">
+      <path d="M430 292 V220 H452 V292 M462 292 V190 H486 V292 M496 292 V236 H514 V292 M524 292 V205 H546 V292 M556 292 V244 H572 V292"/>
+    </g>
+
+    <!-- la strada che arriva fino a casa: blu da dove parti, ambra dove arrivi -->
+    <g filter="url(#neon)" fill="none" stroke-linecap="round">
+      <path d="M60 520 C230 470 300 400 430 372 C560 344 640 380 760 330 C840 296 880 270 968 262"
+            stroke="url(#strada)" stroke-width="7"/>
+      <path d="M60 600 C250 540 330 450 470 420 C610 390 690 430 820 372 C880 346 920 326 968 318"
+            stroke="url(#strada)" stroke-width="7"/>
+      <path d="M60 560 C240 505 315 425 450 396 C585 367 665 405 790 351 C860 321 900 298 968 290"
+            stroke="url(#strada)" stroke-width="3" stroke-dasharray="22 20" opacity="0.8"/>
+    </g>
+
+    <!-- le colonnine -->
+    <g filter="url(#neon)" fill="none" stroke-width="5" stroke-linejoin="round" stroke-linecap="round">
+      <g stroke="#58a0ff" transform="translate(118 214)">
+        <rect x="0" y="0" width="54" height="86" rx="8"/>
+        <rect x="10" y="12" width="34" height="22" rx="3"/>
+        <path d="M31 44 L20 62 H30 L23 78 L38 56 H28 Z" fill="#58a0ff" stroke-width="2"/>
+        <path d="M54 26 H66 V72 Q66 82 76 82"/>
+      </g>
+      <g stroke="#ffa340" transform="translate(842 150)">
+        <rect x="0" y="0" width="54" height="86" rx="8"/>
+        <rect x="10" y="12" width="34" height="22" rx="3"/>
+        <path d="M31 44 L20 62 H30 L23 78 L38 56 H28 Z" fill="#ffa340" stroke-width="2"/>
+        <path d="M54 26 H66 V72 Q66 82 76 82"/>
+      </g>
+      <!-- la casa in fondo alla strada: è lì che arrivano i dati -->
+      <g stroke="#ffb357" transform="translate(712 186)">
+        <path d="M0 44 L40 10 L80 44 M12 34 V76 H68 V34"/>
+        <rect x="31" y="50" width="18" height="26" rx="2"/>
+      </g>
+    </g>
+
+    <!-- l'auto, di profilo, accesa -->
+    <g filter="url(#neon)" fill="none" stroke-linejoin="round" stroke-linecap="round" transform="translate(300 262) scale(1.12)">
+      <path d="M8 92 C6 74 16 66 40 62 L104 54 L152 22 C168 12 188 8 214 8 L270 10 C296 12 318 26 340 48 L366 56 C384 60 392 70 392 86 L390 94 L344 94
+               M290 94 L132 94 M78 94 L12 94 Z"
+            stroke="#8fc2ff" stroke-width="5"/>
+      <path d="M118 56 L160 28 C172 21 186 19 204 19 L232 19 L240 56 Z M252 56 L246 19 L268 20 C288 22 304 34 322 52 L324 56 Z"
+            stroke="#5aa2ff" stroke-width="3.5"/>
+      <circle cx="105" cy="94" r="24" stroke="#8fc2ff" stroke-width="5"/>
+      <circle cx="317" cy="94" r="24" stroke="#8fc2ff" stroke-width="5"/>
+      <circle cx="105" cy="94" r="9" stroke="#ffb357" stroke-width="3"/>
+      <circle cx="317" cy="94" r="9" stroke="#ffb357" stroke-width="3"/>
+      <path d="M372 66 L388 70" stroke="#ffd08a" stroke-width="5"/>
+    </g>
+
+    <!-- G e A: il blu di GdAHome e l'ambra, come le sorelle -->
+    <g filter="url(#rilievo)">
+      <text x="292" y="762" text-anchor="middle" class="titolo" font-size="380" fill="url(#blu)"
+            stroke="#cfe4ff" stroke-width="5" paint-order="stroke">G</text>
+      <text x="728" y="762" text-anchor="middle" class="titolo" font-size="380" fill="url(#ambra)"
+            stroke="#ffe0b0" stroke-width="5" paint-order="stroke">A</text>
+    </g>
+    <!-- la d piccola fra le due, come nel nome -->
+    <text x="508" y="762" text-anchor="middle" class="titolo" font-size="140" fill="url(#lampo)" filter="url(#rilievo)">d</text>
+
+    <!-- il fulmine che attraversa la A: la ricarica -->
+    <g filter="url(#neon)">
+      <path d="M748 560 L700 652 H738 L712 736 L796 622 H754 L784 560 Z" fill="url(#lampo)" stroke="#ffffff" stroke-width="4" stroke-linejoin="round"/>
+    </g>
+
+    <!-- il nome -->
+    <text x="512" y="866" text-anchor="middle" class="scritta" font-size="84">
+      <tspan fill="url(#blu)">GdA</tspan><tspan dx="22" fill="url(#ambra)">AUTO</tspan>
+    </text>
+
+    <!-- la riga in fondo: auto, spina, casa -->
+    <g fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="4">
+      <path d="M190 918 H400" stroke="#2f86ff" opacity="0.8"/>
+      <path d="M624 918 H834" stroke="#ff8a1f" opacity="0.8"/>
+      <g stroke="#7db4ff" transform="translate(424 902)">
+        <path d="M2 24 V16 L10 6 H34 L42 16 V24 Z M8 24 v4 M36 24 v4"/>
+      </g>
+      <g stroke="#ffffff" transform="translate(496 898)">
+        <path d="M10 2 V12 M22 2 V12 M5 12 H27 V20 Q27 30 16 30 Q5 30 5 20 Z M16 30 V40"/>
+      </g>
+      <g stroke="#ffb357" transform="translate(556 898)">
+        <path d="M2 18 L22 2 L42 18 M8 14 V34 H36 V14"/>
+      </g>
+    </g>
+  </g>
+
+  <!-- il filo del bordo, sopra a tutto -->
+  <rect x="56" y="56" width="912" height="912" rx="200" fill="none" stroke="url(#bordo)" stroke-width="6"/>
+</svg>

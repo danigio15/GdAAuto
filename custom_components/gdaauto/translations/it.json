@@ -1,0 +1,287 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "GdAAuto",
+        "description": "Da dove arriva la tua auto?",
+        "menu_options": {
+          "leapmotor": "Leapmotor",
+          "home_assistant": "È già in Home Assistant (Tesla, Stellantis, Kia, BMW…)"
+        }
+      },
+      "leapmotor": {
+        "title": "Leapmotor",
+        "description": "Usa un account Leapmotor **dedicato**, con l'auto condivisa dall'account principale: il cloud tiene una sessione sola per account, e con lo stesso account l'app sul telefono verrebbe disconnessa.\n\nIl certificato e la chiave dell'app Leapmotor non sono pubblici: incollali qui, oppure mettili come `app_cert.pem` e `app_key.pem` in `{cartella}`.",
+        "data": {
+          "email": "Email dell'account Leapmotor",
+          "password": "Password",
+          "cert_app": "Certificato dell'app (app_cert.pem)",
+          "chiave_app": "Chiave dell'app (app_key.pem)"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Rientra in Leapmotor",
+        "description": "La password di {email} non va più. Scrivila di nuovo; il certificato serve solo se è cambiato.",
+        "data": {
+          "password": "Password",
+          "cert_app": "Certificato dell'app (app_cert.pem)",
+          "chiave_app": "Chiave dell'app (app_key.pem)"
+        }
+      },
+      "home_assistant": {
+        "title": "Un'auto già in Home Assistant",
+        "description": "Scegli il dispositivo dell'auto, quello creato dalla sua integrazione (Tesla, Stellantis, Kia, BMW, Renault…). Nel passo dopo GdAAuto propone da solo le entità.",
+        "data": {
+          "dispositivo": "Dispositivo dell'auto"
+        }
+      },
+      "entita": {
+        "title": "Le entità dell'auto",
+        "description": "Ne ho riconosciute {trovate}. Controlla e correggi: serve solo la batteria.",
+        "data": {
+          "nome": "Nome dell'auto",
+          "batteria": "Batteria",
+          "autonomia": "Autonomia",
+          "odometro": "Contachilometri",
+          "velocita": "Velocità",
+          "in_carica": "In carica",
+          "cavo": "Cavo collegato",
+          "potenza_ricarica": "Potenza di ricarica",
+          "tempo_ricarica": "Tempo alla fine della ricarica",
+          "temperatura_batteria": "Temperatura batteria",
+          "temperatura_interna": "Temperatura interna",
+          "temperatura_esterna": "Temperatura esterna",
+          "limite": "Limite di ricarica",
+          "serratura": "Serratura",
+          "clima": "Clima",
+          "interruttore_ricarica": "Interruttore della ricarica",
+          "trova": "Pulsante per trovarla (clacson/luci)",
+          "posizione": "Posizione"
+        }
+      }
+    },
+    "error": {
+      "credenziali": "Email o password rifiutate dal cloud.",
+      "certificato": "Il certificato o la chiave dell'app non si aprono, o il cloud li rifiuta.",
+      "certificato_mancante": "Servono il certificato e la chiave dell'app Leapmotor.",
+      "rete": "Il cloud non risponde. Riprova fra poco.",
+      "nessuna_auto": "L'account non ha auto, nemmeno condivise.",
+      "dispositivo": "Il dispositivo non esiste più.",
+      "gia_gdaauto": "Questo è già un dispositivo GdAAuto: scegli quello dell'integrazione dell'auto.",
+      "batteria": "Serve almeno la batteria."
+    },
+    "abort": {
+      "already_configured": "Questa auto o questo account ci sono già.",
+      "reauth_successful": "Fatto: si è rientrati."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "GdAAuto",
+        "description": "Il PIN serve per i comandi all'auto (chiudere, clima, ricarica). Aprire l'auto da lontano è spento finché non lo accendi qui.",
+        "data": {
+          "pin": "PIN dell'auto",
+          "intervallo_minuti": "Ogni quanto leggere l'auto da ferma",
+          "intervallo_in_moto_secondi": "Ogni quanto leggerla in marcia o in carica",
+          "risparmio": "Leggere meno spesso quando è chiusa e senza cavo",
+          "comandi_attivi": "Comandi accesi"
+        }
+      }
+    }
+  },
+  "selector": {
+    "comandi_attivi": {
+      "options": {
+        "trova": "Trova l'auto (clacson e luci)",
+        "clima": "Clima",
+        "ricarica": "Avvia e ferma la ricarica",
+        "limite_ricarica": "Limite di ricarica",
+        "destinazione": "Manda una destinazione al navigatore dell'auto",
+        "apri": "Apri l'auto da lontano"
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "batteria": {
+        "name": "Batteria"
+      },
+      "autonomia": {
+        "name": "Autonomia"
+      },
+      "odometro": {
+        "name": "Contachilometri"
+      },
+      "velocita": {
+        "name": "Velocità"
+      },
+      "potenza": {
+        "name": "Potenza"
+      },
+      "potenza_ricarica": {
+        "name": "Potenza ricarica"
+      },
+      "tempo_ricarica": {
+        "name": "Tempo alla fine della ricarica"
+      },
+      "energia_residua": {
+        "name": "Energia residua"
+      },
+      "stato_ricarica": {
+        "name": "Stato ricarica",
+        "state": {
+          "non_in_carica": "Non in carica",
+          "in_carica": "In carica",
+          "completata": "Completata",
+          "errore": "Errore",
+          "programmata": "Programmata",
+          "rigenerazione": "Rigenerazione",
+          "in_pausa": "In pausa"
+        }
+      },
+      "marcia": {
+        "name": "Marcia",
+        "state": {
+          "parcheggio": "P",
+          "avanti": "D",
+          "folle": "N",
+          "retromarcia": "R"
+        }
+      },
+      "temperatura_batteria": {
+        "name": "Temperatura batteria"
+      },
+      "temperatura_interna": {
+        "name": "Temperatura interna"
+      },
+      "temperatura_esterna": {
+        "name": "Temperatura esterna"
+      },
+      "pneumatici_ant_sx": {
+        "name": "Pneumatico anteriore sinistro"
+      },
+      "pneumatici_ant_dx": {
+        "name": "Pneumatico anteriore destro"
+      },
+      "pneumatici_post_sx": {
+        "name": "Pneumatico posteriore sinistro"
+      },
+      "pneumatici_post_dx": {
+        "name": "Pneumatico posteriore destro"
+      },
+      "ultimo_aggiornamento": {
+        "name": "Ultimo aggiornamento"
+      }
+    },
+    "binary_sensor": {
+      "in_carica": {
+        "name": "In carica"
+      },
+      "cavo_collegato": {
+        "name": "Cavo collegato"
+      },
+      "portiere": {
+        "name": "Portiere"
+      },
+      "bagagliaio": {
+        "name": "Bagagliaio"
+      },
+      "finestrini": {
+        "name": "Finestrini"
+      },
+      "quadro": {
+        "name": "Quadro acceso"
+      },
+      "clima_acceso": {
+        "name": "Clima acceso"
+      },
+      "sentinella": {
+        "name": "Sentinella"
+      },
+      "serratura": {
+        "name": "Serratura"
+      }
+    },
+    "lock": {
+      "serratura": {
+        "name": "Serratura"
+      }
+    },
+    "switch": {
+      "clima": {
+        "name": "Clima"
+      },
+      "comando_ricarica": {
+        "name": "Comando ricarica"
+      }
+    },
+    "number": {
+      "limite_ricarica": {
+        "name": "Limite ricarica"
+      }
+    },
+    "button": {
+      "aggiorna": {
+        "name": "Aggiorna"
+      },
+      "trova": {
+        "name": "Trova l'auto"
+      }
+    },
+    "device_tracker": {
+      "posizione": {
+        "name": "Posizione"
+      }
+    }
+  },
+  "exceptions": {
+    "comando_spento": {
+      "message": "Il comando «{comando}» non c'è per questa auto, o è spento nelle opzioni di GdAAuto."
+    },
+    "pin": {
+      "message": "PIN: {errore}"
+    },
+    "nessuna_auto": {
+      "message": "Nessuna auto GdAAuto trovata."
+    }
+  },
+  "services": {
+    "invia_destinazione": {
+      "name": "Invia una destinazione",
+      "description": "Manda un indirizzo al navigatore dell'auto.",
+      "fields": {
+        "dispositivo": {
+          "name": "Auto",
+          "description": "Senza, a tutte le auto."
+        },
+        "nome": {
+          "name": "Nome",
+          "description": "Come si chiama il posto."
+        },
+        "latitudine": {
+          "name": "Latitudine",
+          "description": "Gradi decimali."
+        },
+        "longitudine": {
+          "name": "Longitudine",
+          "description": "Gradi decimali."
+        },
+        "indirizzo": {
+          "name": "Indirizzo",
+          "description": "Facoltativo."
+        }
+      }
+    },
+    "aggiorna": {
+      "name": "Aggiorna",
+      "description": "Rilegge l'auto adesso (al massimo ogni 30 secondi).",
+      "fields": {
+        "dispositivo": {
+          "name": "Auto",
+          "description": "Senza, tutte le auto."
+        }
+      }
+    }
+  }
+}

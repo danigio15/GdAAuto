@@ -1,0 +1,47 @@
+name: Le prove
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  integrazione:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # Le sorelle, solo da leggere: le prove controllano che la plancia di
+      # GdAHome e gdanav riconoscano un'auto GdAAuto col loro codice vero.
+      - uses: actions/checkout@v4
+        with:
+          repository: danigio15/gdanav
+          path: sorelle/gdanav
+      - uses: actions/checkout@v4
+        with:
+          repository: danigio15/gdahomeapp
+          path: sorelle/gdahomeapp
+          sparse-checkout: officina/custom_components/dashboardmodern/frontend/src/core
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: pip install -r requirements_test.txt ruff
+      - run: ruff check custom_components tests
+      - run: ruff format --check custom_components tests
+      - run: pytest
+
+  hassfest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: home-assistant/actions/hassfest@master
+
+  hacs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: hacs/action@main
+        with:
+          category: integration
+          ignore: brands
