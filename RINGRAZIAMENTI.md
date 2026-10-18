@@ -351,6 +351,43 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
+## ReneNulschDE/mbapi2020 — licenza MIT
+
+<https://github.com/ReneNulschDE/mbapi2020>
+
+Da qui vengono i fatti del protocollo Mercedes me: i passi del login,
+l'identificativo pubblico dell'app, gli indirizzi per regione, le
+intestazioni e le versioni dell'app, gli indirizzi REST, il websocket dei
+comandi con le sue conferme, i numeri di campo dei messaggi protobuf e i
+significati dei codici di stato. Il lettore protobuf di GdAAuto è scritto da
+capo; i campioni delle prove (`tests/mercedes_campioni.py`) sono stati
+prodotti una volta con i messaggi di mbapi2020 e la libreria protobuf, che
+GdAAuto non usa.
+
+```
+MIT License
+
+Copyright (c) 2026 Rene Nulsch
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
 ## Tesla — la documentazione ufficiale
 
 La Fleet API è documentata da Tesla su <https://developer.tesla.com/docs/fleet-api>.
