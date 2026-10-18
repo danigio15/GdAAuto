@@ -77,6 +77,27 @@ class StatoVettura:
     potenza_diretta_kw: float | None = None
     #: l'auto dorme: i dati sono quelli di quando si è addormentata
     in_sonno: bool | None = None
+    #: l'autonomia di omologazione (WLTP o CLTC) con la carica di adesso
+    autonomia_nominale_km: float | None = None
+    #: ibride con range extender: il serbatoio e le autonomie a benzina e totale
+    carburante_percento: float | None = None
+    autonomia_carburante_km: float | None = None
+    autonomia_totale_km: float | None = None
+    #: il consumo medio delle ultime settimane, per chi pianifica un viaggio
+    consumo_medio_kwh_100km: float | None = None
+    ricarica_rapida: bool | None = None
+    #: l'auto sta dando corrente fuori (Vehicle-to-Load)
+    v2l_attivo: bool | None = None
+    batteria_in_riscaldamento: bool | None = None
+    #: almeno una gomma in allarme (pressione o sensore)
+    pneumatici_allarme: bool | None = None
+    freno_stazionamento: bool | None = None
+    antifurto: bool | None = None
+    sbrinamento: bool | None = None
+    #: la ricarica programmata: accesa, e dalle/alle «HH:MM»
+    ricarica_programmata: bool | None = None
+    ricarica_ora_inizio: str | None = None
+    ricarica_ora_fine: str | None = None
     grezzo: dict[str, Any] = field(default_factory=dict)
 
     # --- quello che si ricava --------------------------------------------

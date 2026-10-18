@@ -13,7 +13,13 @@ Da qui vengono, riscritti in `custom_components/gdaauto/marche/leapmotor/cripto.
   del certificato dell'account;
 - la chiave e l'IV di riserva per cifrare il PIN, e il modo di ricavarli dal token;
 - l'ordine dei campi nelle firme del login, delle richieste e dei comandi;
-- il corpo intero dello spegnimento del clima che la T03 vuole.
+- il corpo intero dello spegnimento del clima che la T03 vuole;
+- come leggere davvero la ricarica sulle auto europee (il codice 1149 da solo
+  non basta: si guarda anche se entra corrente), la serratura solo con 1 o 0,
+  l'ordine delle gomme, la marcia (1 retromarcia, 3 avanti), i dati vecchi di
+  più di 15 minuti come auto addormentata, e i segnali di autonomia di
+  omologazione, ricarica rapida, riscaldamento della batteria, freno di
+  stazionamento, sbrinamento, allarme gomme e range extender.
 
 La licenza MIT chiede che il suo avviso accompagni il codice:
 
@@ -41,6 +47,17 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
+## ProtossBlaster/leapmotor-mate — fatti osservati
+
+<https://github.com/ProtossBlaster/leapmotor-mate>
+
+Licenza AGPL-3.0: GdAAuto non ne prende codice, solo **fatti** osservati su
+auto vere. Che leggere il cloud non sveglia l'auto (e quindi si può leggere
+spesso), che una C10 manda 0 km di autonomia quando si addormenta, che una B10
+tiene acceso il segnale della presa per qualche minuto dopo averla staccata e
+che 2 vuol dire V2L, che i finestrini delle B10 dicono 2 quando sono aperti, e
+la conferma dell'ordine delle gomme.
+
 ## markoceri/leapmotor-certs — il certificato dell'app
 
 <https://github.com/markoceri/leapmotor-certs>
@@ -58,7 +75,8 @@ salva nella configurazione di chi li ha chiesti.
 La sua documentazione (`docs/api.md`, `docs/vehicles.md`) descrive gli
 indirizzi del cloud, i numeri dei segnali delle C10 e B10 e i comandi. Da lì
 vengono i **fatti** che GdAAuto usa: quale numero è la batteria, quale
-indirizzo legge lo stato. Il codice di quel progetto è sotto AGPL-3.0 e
+indirizzo legge lo stato, l'indirizzo del consumo medio delle ultime
+settimane. Il codice di quel progetto è sotto AGPL-3.0 e
 **non è stato copiato**: il cliente di GdAAuto è scritto da capo.
 
 ## andreadegiovine/homeassistant-stellantis-vehicles — licenza MIT

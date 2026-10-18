@@ -204,3 +204,28 @@ async def test_i_comandi_seguono_i_diritti(cloud, tmp_path: Path) -> None:
 
 def test_il_nonce_del_cloud_e_quello_del_cliente() -> None:
     assert cripto.SORGENTE == "leapmotor"
+
+
+async def test_il_consumo_medio_si_legge_ogni_mezz_ora(cloud, tmp_path: Path) -> None:
+    finto, url = cloud
+    async with aiohttp.ClientSession() as s:
+        c = _cliente(finto, url, s, tmp_path)
+        t03, b10 = await c.vetture()
+        assert (await c.stato(b10)).consumo_medio_kwh_100km == 15.8
+        # Alla lettura dopo non si richiede: è lo stesso numero.
+        assert (await c.stato(b10)).consumo_medio_kwh_100km == 15.8
+        assert finto.letture_consumo == 1
+        # Ogni auto il suo.
+        await c.stato(t03)
+        assert finto.letture_consumo == 2
+
+
+async def test_senza_consumo_lo_stato_arriva_lo_stesso(cloud, tmp_path: Path) -> None:
+    finto, url = cloud
+    finto.consumo = None
+    async with aiohttp.ClientSession() as s:
+        c = _cliente(finto, url, s, tmp_path)
+        _t03, b10 = await c.vetture()
+        st = await c.stato(b10)
+    assert st.batteria == 65
+    assert st.consumo_medio_kwh_100km is None

@@ -292,6 +292,27 @@
       },
       "ultimo_aggiornamento": {
         "name": "Last update"
+      },
+      "autonomia_nominale": {
+        "name": "Rated range"
+      },
+      "carburante": {
+        "name": "Fuel"
+      },
+      "autonomia_carburante": {
+        "name": "Fuel range"
+      },
+      "autonomia_totale": {
+        "name": "Total range"
+      },
+      "consumo_medio": {
+        "name": "Average consumption"
+      },
+      "ricarica_inizio": {
+        "name": "Scheduled charge start"
+      },
+      "ricarica_fine": {
+        "name": "Scheduled charge end"
       }
     },
     "binary_sensor": {
@@ -324,6 +345,30 @@
       },
       "in_sonno": {
         "name": "Asleep"
+      },
+      "ricarica_rapida": {
+        "name": "Fast charging"
+      },
+      "ricarica_programmata": {
+        "name": "Scheduled charging"
+      },
+      "v2l": {
+        "name": "Power outlet (V2L)"
+      },
+      "batteria_in_riscaldamento": {
+        "name": "Battery heating"
+      },
+      "pneumatici_allarme": {
+        "name": "Tyre warning"
+      },
+      "freno_stazionamento": {
+        "name": "Parking brake"
+      },
+      "antifurto": {
+        "name": "Anti-theft"
+      },
+      "sbrinamento": {
+        "name": "Windscreen defrost"
       }
     },
     "lock": {

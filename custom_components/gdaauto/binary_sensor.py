@@ -35,6 +35,20 @@ DESCRIZIONI: tuple[Descrizione, ...] = (
     Descrizione(key="clima_acceso", valore=lambda s: s.clima_acceso),
     Descrizione(key="sentinella", valore=lambda s: s.sentinella),
     Descrizione(key="in_sonno", valore=lambda s: s.in_sonno),
+    Descrizione(key="ricarica_rapida", valore=lambda s: s.ricarica_rapida),
+    Descrizione(key="ricarica_programmata", valore=lambda s: s.ricarica_programmata),
+    Descrizione(key="v2l", device_class=BinarySensorDeviceClass.POWER, valore=lambda s: s.v2l_attivo),
+    Descrizione(
+        key="batteria_in_riscaldamento",
+        device_class=BinarySensorDeviceClass.HEAT,
+        valore=lambda s: s.batteria_in_riscaldamento,
+    ),
+    Descrizione(
+        key="pneumatici_allarme", device_class=BinarySensorDeviceClass.PROBLEM, valore=lambda s: s.pneumatici_allarme
+    ),
+    Descrizione(key="freno_stazionamento", valore=lambda s: s.freno_stazionamento),
+    Descrizione(key="antifurto", device_class=BinarySensorDeviceClass.SAFETY, valore=lambda s: s.antifurto),
+    Descrizione(key="sbrinamento", valore=lambda s: s.sbrinamento),
     # La serratura come sola lettura, quando non si può comandare (niente
     # PIN, o la marca non lo permette). Per Home Assistant «on» è aperta.
     Descrizione(

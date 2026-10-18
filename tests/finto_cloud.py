@@ -80,6 +80,9 @@ class FintoCloud:
     chiamate: list[str] = field(default_factory=list)
     comandi: list[dict[str, str]] = field(default_factory=list)
     login: int = 0
+    #: il consumo medio delle ultime settimane (kWh/100 km, come stringa); None: il cloud non lo dà
+    consumo: str | None = "15.8"
+    letture_consumo: int = 0
 
     def __post_init__(self) -> None:
         self.cert_app, self.chiave_app, *_ = certificato("app")
@@ -156,6 +159,13 @@ class FintoCloud:
                 self.token = "scaduto-" + self.token
                 return self._risposta(code=401, message="token expired")
             return self._risposta(self.stati[corpo["vin"]])
+
+        if resto == "drivingRecord/v1/getLastNweeks100kmECAndRank":
+            self._firma_standard(h, {"carvin": corpo["carvin"]})
+            self.letture_consumo += 1
+            if self.consumo is None:
+                return self._risposta(code=1, message="no data")
+            return self._risposta({"rankResult": {"hundredKmEC": self.consumo, "rank": "40%"}, "weeklyEC": []})
 
         if resto == "vehicle/v1/cert/sync":
             self._firma_standard(h, {})

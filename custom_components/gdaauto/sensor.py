@@ -142,6 +142,53 @@ DESCRIZIONI: tuple[Descrizione, ...] = (
         state_class=SensorStateClass.MEASUREMENT,
         valore=lambda s: s.temperatura_esterna_c,
     ),
+    Descrizione(
+        key="autonomia_nominale",
+        device_class=SensorDeviceClass.DISTANCE,
+        native_unit_of_measurement=UnitOfLength.KILOMETERS,
+        state_class=SensorStateClass.MEASUREMENT,
+        suggested_display_precision=0,
+        entity_category=EntityCategory.DIAGNOSTIC,
+        valore=lambda s: s.autonomia_nominale_km,
+    ),
+    Descrizione(
+        key="carburante",
+        native_unit_of_measurement=PERCENTAGE,
+        state_class=SensorStateClass.MEASUREMENT,
+        suggested_display_precision=0,
+        valore=lambda s: s.carburante_percento,
+    ),
+    Descrizione(
+        key="autonomia_carburante",
+        device_class=SensorDeviceClass.DISTANCE,
+        native_unit_of_measurement=UnitOfLength.KILOMETERS,
+        state_class=SensorStateClass.MEASUREMENT,
+        suggested_display_precision=0,
+        valore=lambda s: s.autonomia_carburante_km,
+    ),
+    Descrizione(
+        key="autonomia_totale",
+        device_class=SensorDeviceClass.DISTANCE,
+        native_unit_of_measurement=UnitOfLength.KILOMETERS,
+        state_class=SensorStateClass.MEASUREMENT,
+        suggested_display_precision=0,
+        valore=lambda s: s.autonomia_totale_km,
+    ),
+    Descrizione(
+        key="consumo_medio",
+        native_unit_of_measurement="kWh/100 km",
+        state_class=SensorStateClass.MEASUREMENT,
+        suggested_display_precision=1,
+        valore=lambda s: s.consumo_medio_kwh_100km,
+    ),
+    Descrizione(
+        key="ricarica_inizio",
+        valore=lambda s: s.ricarica_ora_inizio,
+    ),
+    Descrizione(
+        key="ricarica_fine",
+        valore=lambda s: s.ricarica_ora_fine,
+    ),
     *(
         Descrizione(
             key=f"pneumatici_{sigla}",

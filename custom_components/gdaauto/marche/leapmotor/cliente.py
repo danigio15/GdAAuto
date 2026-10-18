@@ -38,6 +38,8 @@ _LOGGER = logging.getLogger(__name__)
 
 BASE_URL = "https://appgateway.leapmotor-international.de"
 _PREFISSO = "/carownerservice/oversea"
+#: Il consumo medio cambia piano: basta rileggerlo ogni mezz'ora.
+_CONSUMO_OGNI_S = 1800
 _TIMEOUT = aiohttp.ClientTimeout(total=30)
 
 # Il modello nel segmento dell'indirizzo dello stato. Le B usano quello della
@@ -170,6 +172,8 @@ class ClienteLeapmotor:
         self._ssl_account: ssl.SSLContext | None = None
         self.sessione: Sessione | None = None
         self._percorsi_provati: dict[str, str] = {}
+        #: VIN → (consumo medio, quando si è letto)
+        self._consumi: dict[str, tuple[float | None, float]] = {}
         self._serratura = asyncio.Lock()
 
     # --- i certificati --------------------------------------------------
@@ -429,9 +433,46 @@ class ClienteLeapmotor:
                 r2 = await self._stato_grezzo(vettura, percorso, car_id=vettura.extra["car_id"])
                 if _ha_segnali(r2.get("data") or {}):
                     d = r2["data"]
-            return interpreta(d)
+            stato = interpreta(d)
+            stato.consumo_medio_kwh_100km = await self._consumo_medio(vettura)
+            return stato
 
         return await self._con_sessione(leggi)
+
+    async def _consumo_medio(self, vettura: Vettura) -> float | None:
+        """Il consumo medio delle ultime sei settimane (kWh/100 km), riletto ogni mezz'ora.
+
+        È un di più: se il cloud non lo dà, lo stato arriva lo stesso.
+        """
+        valore, quando = self._consumi.get(vettura.vin, (None, 0.0))
+        if time.monotonic() - quando < _CONSUMO_OGNI_S and quando:
+            return valore
+        try:
+            r = await self._posta(
+                "consumo medio",
+                "/drivingRecord/v1/getLastNweeks100kmECAndRank",
+                intestazioni=self._firmate(parametri={"carvin": vettura.vin}),
+                corpo=_forma({"carvin": vettura.vin}),
+                ssl_=self._ssl_account,  # type: ignore[arg-type]
+            )
+        except ErroreApi as err:
+            if err.token_scaduto:
+                raise
+            _LOGGER.debug("Consumo medio della %s non letto: %s", vettura.modello, err)
+            nuovo = None
+        except ErroreRete as err:
+            _LOGGER.debug("Consumo medio della %s non letto: %s", vettura.modello, err)
+            return valore
+        else:
+            classifica = (r.get("data") or {}).get("rankResult") if isinstance(r.get("data"), dict) else None
+            try:
+                nuovo = float(classifica["hundredKmEC"]) if isinstance(classifica, dict) else None
+            except (KeyError, TypeError, ValueError):
+                nuovo = None
+            if nuovo is not None and not 0 < nuovo < 100:
+                nuovo = None
+        self._consumi[vettura.vin] = (nuovo, time.monotonic())
+        return nuovo
 
     async def _stato_grezzo(self, vettura: Vettura, percorso: str, car_id: str | None = None) -> dict[str, Any]:
         corpo = {"vin": vettura.vin}

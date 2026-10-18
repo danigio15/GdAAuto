@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+import time
 from typing import Any
 
 from custom_components.gdaauto.marche.leapmotor.cliente import vettura_da_json
@@ -29,7 +30,11 @@ class FintoCliente:
 
     async def stato(self, v: Vettura) -> StatoVettura:
         self.letture += 1
-        return interpreta(self.stati[v.vin])
+        dati = dict(self.stati[v.vin])
+        if isinstance(dati.get("signal"), dict):
+            # Come il cloud vero quando l'auto è sveglia: l'ultimo dato è di adesso.
+            dati["signal"] = {**dati["signal"], "sts": int(time.time() * 1000)}
+        return interpreta(dati)
 
     async def verifica_pin(self, v: Vettura, pin: str) -> None:
         self.chiamate.append(("verifica_pin", (v.vin,)))

@@ -66,6 +66,7 @@ C10 = {
         "2653": 250,
         "2660": 253,
         "2667": 253,
+        "3257": 405,
         "3260": 278,
         "3724": 14.28319,
         "3725": 40.85812,
@@ -161,3 +162,120 @@ def test_in_marcia_la_ricarica_e_rigenerazione() -> None:
     assert s.in_marcia
     assert s.in_carica is False
     assert s.potenza_ricarica_kw == 0.0
+
+
+# --- quello che le auto europee fanno davvero (leapmotor-ha, leapmotor-mate) -------------
+
+
+def _c10(**segnali: object) -> dict:
+    return {"signal": {**C10["signal"], **segnali}, "config": C10["config"]}
+
+
+def test_le_gomme_sono_sulle_ruote_giuste() -> None:
+    s = interpreta(_c10(**{"2646": 241, "2653": 242, "2660": 243, "2667": 244, "2655": 1}))
+    assert s.pneumatici_kpa == {
+        "anteriore_sinistro": 241,
+        "anteriore_destro": 242,
+        "posteriore_sinistro": 243,
+        "posteriore_destro": 244,
+    }
+    assert s.pneumatici_allarme is True  # 2655: la posteriore sinistra
+    assert interpreta(_c10(**{"2641": 0, "2648": 0})).pneumatici_allarme is False
+    assert interpreta(C10).pneumatici_allarme is None  # chi non lo dice
+
+
+def test_la_c10_che_carica_dicendo_2() -> None:
+    # 1149 = 2 mentre entrano 26 A: carica, non «finita».
+    s = interpreta(_c10(**{"1149": 2}))
+    assert s.stato_ricarica == StatoRicarica.IN_CARICA
+    assert s.potenza_ricarica_kw == 11.047
+    # 2 senza corrente e senza tempo: finita davvero, col cavo ancora dentro.
+    s = interpreta(_c10(**{"1149": 2, "1178": 0.1, "1200": 0}))
+    assert s.stato_ricarica == StatoRicarica.COMPLETATA
+    assert s.cavo_collegato is True
+    assert s.potenza_ricarica_kw == 0.0
+
+
+def test_i_codici_della_ricarica() -> None:
+    fermo = {"1178": 0.1, "1200": 0}
+    assert interpreta(_c10(**{"1149": 4, **fermo})).stato_ricarica == StatoRicarica.PROGRAMMATA
+    assert interpreta(_c10(**{"1149": 3, **fermo})).stato_ricarica == StatoRicarica.IN_PAUSA  # ibrida, a metà
+    assert interpreta(_c10(**{"1149": 3})).stato_ricarica == StatoRicarica.IN_CARICA
+    # 5 è un codice di marcia, non un cavo.
+    s = interpreta(_c10(**{"1149": 5, "47": 0, **fermo}))
+    assert (s.stato_ricarica, s.cavo_collegato) == (StatoRicarica.NON_IN_CARICA, False)
+
+
+def test_in_marcia_non_si_carica_e_il_cavo_non_c_e() -> None:
+    # La B10 tiene 47 = 1 per qualche minuto dopo aver staccato: in marcia non conta.
+    s = interpreta(_c10(**{"1319": 48.0, "1010": 3}))
+    assert s.marcia == Marcia.AVANTI
+    assert s.in_marcia is True
+    assert s.stato_ricarica == StatoRicarica.NON_IN_CARICA
+    assert s.cavo_collegato is False
+
+
+def test_la_marcia_come_la_dice_l_app() -> None:
+    assert interpreta(_c10(**{"1010": 1})).marcia == Marcia.RETROMARCIA
+    assert interpreta(_c10(**{"1010": 3})).marcia == Marcia.AVANTI
+    assert interpreta(_c10(**{"1010": 0xFFFFFF})).marcia is None
+
+
+def test_v2l_e_ricarica_rapida() -> None:
+    s = interpreta(_c10(**{"47": 2, "1149": 0, "1178": 5.0, "1200": 0}))
+    assert s.v2l_attivo is True
+    assert s.in_carica is False
+    s = interpreta(_c10(**{"47": 0, "1197": 1, "1178": -250.0}))
+    assert s.ricarica_rapida is True
+    assert interpreta(C10).ricarica_rapida is False
+    # La T03 accende «rapida» anche in pausa alla wallbox: lì non si dice.
+    assert interpreta({**T03, "chargeState": 1, "dcInputFastCharge": 1}).ricarica_rapida is None
+
+
+def test_lo_zero_km_della_c10_che_si_addormenta() -> None:
+    s = interpreta(_c10(**{"3260": 0, "2188": 0, "1204": 90}))
+    assert s.autonomia_km is None
+    assert interpreta(_c10(**{"3260": 0, "2188": 310})).autonomia_km == 310
+    assert interpreta(_c10(**{"3260": 0, "1204": 3, "100003": 3})).autonomia_km == 0
+
+
+def test_la_serratura_solo_con_1_o_0() -> None:
+    assert interpreta(_c10(**{"1298": 1})).chiusa is True
+    assert interpreta(_c10(**{"1298": 0})).chiusa is False
+    assert interpreta(_c10(**{"1298": 2})).chiusa is None
+
+
+def test_i_finestrini_secondo_il_modello() -> None:
+    # B10: il segnale dice 2 quando è aperto; la percentuale resta a 0.
+    assert interpreta(_c10(**{"1694": 2})).finestrini_aperti is True
+    assert interpreta(_c10(**{"3727": 40, "1693": 0})).finestrini_aperti is False
+    # T03: il contrario.
+    assert interpreta({**T03, "driverWindowStatus": 0, "leftFrontWindowPercent": 30}).finestrini_aperti is True
+
+
+def test_i_dati_nuovi() -> None:
+    s = interpreta(
+        _c10(**{"3257": 410, "1186": 4, "1480": 1, "1255": 2, "1945": 2})
+        | {"config": {"3": {"percent": 80, "isEnable": 1, "beginTime": "1:30", "endTime": "07:00"}}}
+    )
+    assert s.autonomia_nominale_km == 410
+    assert s.batteria_in_riscaldamento is True
+    assert s.freno_stazionamento is True
+    assert s.antifurto is True
+    assert s.sbrinamento is True
+    assert (s.ricarica_programmata, s.ricarica_ora_inizio, s.ricarica_ora_fine) == (True, "01:30", "07:00")
+    assert interpreta(C10).ricarica_programmata is False
+    assert interpreta({**T03, "outdoorTemp": 12.5}).temperatura_esterna_c == 12.5
+
+
+def test_l_ibrida_col_range_extender() -> None:
+    s = interpreta(_c10(**{"3235": 62, "3259": 610, "3261": 888}))
+    assert (s.carburante_percento, s.autonomia_carburante_km, s.autonomia_totale_km) == (62, 610, 888)
+    assert interpreta(C10).carburante_percento is None
+
+
+def test_i_dati_vecchi_sono_di_un_auto_che_dorme() -> None:
+    adesso = int(datetime.now(UTC).timestamp() * 1000)
+    assert interpreta(_c10(sts=adesso)).in_sonno is False
+    assert interpreta(_c10(sts=adesso - 3_600_000)).in_sonno is True
+    assert interpreta(T03).in_sonno is None  # la T03: non si sa

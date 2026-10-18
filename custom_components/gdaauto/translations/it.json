@@ -292,6 +292,27 @@
       },
       "ultimo_aggiornamento": {
         "name": "Ultimo aggiornamento"
+      },
+      "autonomia_nominale": {
+        "name": "Autonomia di omologazione"
+      },
+      "carburante": {
+        "name": "Carburante"
+      },
+      "autonomia_carburante": {
+        "name": "Autonomia a carburante"
+      },
+      "autonomia_totale": {
+        "name": "Autonomia totale"
+      },
+      "consumo_medio": {
+        "name": "Consumo medio"
+      },
+      "ricarica_inizio": {
+        "name": "Inizio ricarica programmata"
+      },
+      "ricarica_fine": {
+        "name": "Fine ricarica programmata"
       }
     },
     "binary_sensor": {
@@ -324,6 +345,30 @@
       },
       "in_sonno": {
         "name": "In sonno"
+      },
+      "ricarica_rapida": {
+        "name": "Ricarica rapida"
+      },
+      "ricarica_programmata": {
+        "name": "Ricarica programmata"
+      },
+      "v2l": {
+        "name": "Corrente all'esterno (V2L)"
+      },
+      "batteria_in_riscaldamento": {
+        "name": "Batteria in riscaldamento"
+      },
+      "pneumatici_allarme": {
+        "name": "Allarme pneumatici"
+      },
+      "freno_stazionamento": {
+        "name": "Freno di stazionamento"
+      },
+      "antifurto": {
+        "name": "Antifurto"
+      },
+      "sbrinamento": {
+        "name": "Sbrinamento parabrezza"
       }
     },
     "lock": {
