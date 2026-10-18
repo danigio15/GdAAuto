@@ -10,19 +10,25 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from . import GdaautoConfigEntry
 from .const import COMANDO_CLIMA, COMANDO_RICARICA
-from .entita import EntitaGdaauto
+from .entita import EntitaGdaauto, Voce, aggiungi_quando_pronte
 
 
 async def async_setup_entry(
     _hass: HomeAssistant, entry: GdaautoConfigEntry, async_add_entities: AddConfigEntryEntitiesCallback
 ) -> None:
-    nuove: list[SwitchEntity] = []
-    for a in entry.runtime_data.auto:
-        if COMANDO_CLIMA in a.comandi:
-            nuove.append(Clima(a, "clima"))
-        if COMANDO_RICARICA in a.comandi:
-            nuove.append(Ricarica(a, "comando_ricarica"))
-    async_add_entities(nuove)
+    for auto in entry.runtime_data.auto:
+        voci: list[Voce] = []
+        if COMANDO_CLIMA in auto.comandi:
+            voci.append(("clima", lambda a: a.data is not None, lambda auto=auto: Clima(auto, "clima")))
+        if COMANDO_RICARICA in auto.comandi:
+            voci.append(
+                (
+                    "comando_ricarica",
+                    lambda a: a.data is not None and a.data.stato_ricarica is not None,
+                    lambda auto=auto: Ricarica(auto, "comando_ricarica"),
+                )
+            )
+        aggiungi_quando_pronte(entry, async_add_entities, auto, voci)
 
 
 class Clima(EntitaGdaauto, SwitchEntity):

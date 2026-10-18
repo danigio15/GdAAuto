@@ -3,28 +3,23 @@
 from __future__ import annotations
 
 from homeassistant.components.device_tracker import TrackerEntity
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from . import GdaautoConfigEntry
-from .entita import EntitaGdaauto
+from .entita import EntitaGdaauto, Voce, aggiungi_quando_pronte
 
 
 async def async_setup_entry(
     _hass: HomeAssistant, entry: GdaautoConfigEntry, async_add_entities: AddConfigEntryEntitiesCallback
 ) -> None:
     for auto in entry.runtime_data.auto:
-        fatta: list[bool] = []
-
-        @callback
-        def controlla(auto=auto, fatta=fatta) -> None:
-            s = auto.data
-            if not fatta and s is not None and s.latitudine is not None and s.longitudine is not None:
-                fatta.append(True)
-                async_add_entities([Posizione(auto, "posizione")])
-
-        controlla()
-        entry.async_on_unload(auto.async_add_listener(controlla))
+        voce: Voce = (
+            "posizione",
+            lambda a: a.data is not None and a.data.latitudine is not None and a.data.longitudine is not None,
+            lambda auto=auto: Posizione(auto, "posizione"),
+        )
+        aggiungi_quando_pronte(entry, async_add_entities, auto, [voce])
 
 
 class Posizione(EntitaGdaauto, TrackerEntity):

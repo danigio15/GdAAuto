@@ -14,17 +14,20 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from . import GdaautoConfigEntry
 from .const import COMANDO_APRI, COMANDO_CHIUDI
-from .entita import EntitaGdaauto
+from .entita import EntitaGdaauto, Voce, aggiungi_quando_pronte
 
 
 async def async_setup_entry(
     _hass: HomeAssistant, entry: GdaautoConfigEntry, async_add_entities: AddConfigEntryEntitiesCallback
 ) -> None:
-    async_add_entities(
-        Serratura(a, "serratura")
-        for a in entry.runtime_data.auto
-        if COMANDO_CHIUDI in a.comandi and a.data is not None and a.data.chiusa is not None
-    )
+    for auto in entry.runtime_data.auto:
+        if COMANDO_CHIUDI in auto.comandi:
+            voce: Voce = (
+                "serratura",
+                lambda a: a.data is not None and a.data.chiusa is not None,
+                lambda auto=auto: Serratura(auto, "serratura"),
+            )
+            aggiungi_quando_pronte(entry, async_add_entities, auto, [voce])
 
 
 class Serratura(EntitaGdaauto, LockEntity):

@@ -12,6 +12,9 @@ from pathlib import Path
 from typing import Any
 
 import aiohttp
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .cliente import BASE_URL, ID, NOME, ClienteLeapmotor, comandi_di
 
@@ -26,6 +29,7 @@ CAMPI: tuple[dict[str, Any], ...] = (
 
 # Il PIN per i comandi: lo chiede questa marca, non tutte.
 VUOLE_PIN = True
+INTERVALLO_MINUTI = 5
 
 
 def crea(sessione_http: aiohttp.ClientSession, dati: dict[str, Any], cartella: Path, lingua: str) -> ClienteLeapmotor:
@@ -41,4 +45,19 @@ def crea(sessione_http: aiohttp.ClientSession, dati: dict[str, Any], cartella: P
     )
 
 
-__all__ = ["CAMPI", "ID", "NOME", "VUOLE_PIN", "ClienteLeapmotor", "comandi_di", "crea"]
+async def crea_da_voce(hass: HomeAssistant, entry: ConfigEntry, cartella: str) -> ClienteLeapmotor:
+    # La sessione di tutti va bene: il certificato si passa a ogni richiesta.
+    return crea(async_get_clientsession(hass), dict(entry.data), Path(cartella), hass.config.language)
+
+
+__all__ = [
+    "CAMPI",
+    "ID",
+    "INTERVALLO_MINUTI",
+    "NOME",
+    "VUOLE_PIN",
+    "ClienteLeapmotor",
+    "comandi_di",
+    "crea",
+    "crea_da_voce",
+]

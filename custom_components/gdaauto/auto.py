@@ -54,7 +54,7 @@ from .const import (
     INTERVALLO_RISPARMIO,
     RILEGGI_DOPO_COMANDO,
 )
-from .marche.leapmotor.errori import ErroreCertificato, ErroreCredenziali, ErroreLeapmotor, ErrorePin
+from .marche.errori import ErroreCertificato, ErroreComando, ErroreCredenziali, ErroreMarca, ErrorePin
 from .vettura import MemoriaEmisfero, StatoRicarica, StatoVettura, Vettura
 
 _LOGGER = logging.getLogger(__name__)
@@ -129,7 +129,8 @@ class Conto:
 
 class AutoCloud(Auto):
     def __init__(self, hass: HomeAssistant, entry: ConfigEntry, conto: Conto, vettura: Vettura, modulo: Any) -> None:
-        self._normale = timedelta(minutes=entry.options.get(CONF_INTERVALLO, INTERVALLO_PREDEFINITO))
+        predefinito = getattr(modulo, "INTERVALLO_MINUTI", INTERVALLO_PREDEFINITO)
+        self._normale = timedelta(minutes=entry.options.get(CONF_INTERVALLO, predefinito))
         self._in_moto = max(
             timedelta(seconds=entry.options.get(CONF_INTERVALLO_IN_MOTO, INTERVALLO_IN_MOTO_PREDEFINITO)),
             INTERVALLO_MINIMO,
@@ -148,7 +149,7 @@ class AutoCloud(Auto):
             stato = await self.conto.cliente.stato(self.vettura)
         except (ErroreCredenziali, ErroreCertificato) as err:
             raise ConfigEntryAuthFailed(str(err)) from err
-        except ErroreLeapmotor as err:
+        except ErroreMarca as err:
             raise UpdateFailed(str(err)) from err
         self.conto.emisfero.correggi(self.vettura.vin, stato)
         self.vettura.stato = stato
@@ -157,6 +158,8 @@ class AutoCloud(Auto):
 
     def _ritmo(self, s: StatoVettura) -> timedelta:
         """Spesso quando succede qualcosa, piano quando l'auto dorme."""
+        if s.in_sonno:
+            return self._normale
         if s.in_marcia or s.in_carica or s.quadro_acceso:
             return self._in_moto
         assert self.config_entry is not None
@@ -197,7 +200,13 @@ class AutoCloud(Auto):
             raise ServiceValidationError(
                 translation_domain=DOMAIN, translation_key="pin", translation_placeholders={"errore": str(err)}
             ) from err
-        except ErroreLeapmotor as err:
+        except ErroreCredenziali as err:
+            assert self.config_entry is not None
+            self.config_entry.async_start_reauth(self.hass)
+            raise HomeAssistantError(f"{self.vettura.titolo}: {err}") from err
+        except ErroreComando as err:
+            raise HomeAssistantError(str(err)) from err
+        except ErroreMarca as err:
             raise HomeAssistantError(f"{self.vettura.titolo}: {err}") from err
         self._rileggi_fra_poco()
 

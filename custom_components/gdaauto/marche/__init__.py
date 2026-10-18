@@ -5,7 +5,8 @@ Una marca è un modulo con dentro:
 - ``ID`` e ``NOME``: come si chiama nel codice e sullo schermo;
 - ``CAMPI``: cosa chiedere a chi la configura (email, password, certificati…);
 - ``VUOLE_PIN``: se i comandi all'auto vogliono un PIN a parte;
-- ``crea(sessione_http, dati, cartella, lingua)``: il suo cliente;
+- ``INTERVALLO_MINUTI``: ogni quanto leggerla da ferma, se l'utente non sceglie;
+- ``crea_da_voce(hass, entry, cartella)``: il suo cliente, dalla configurazione;
 - ``comandi_di(vettura)``: i comandi neutri che quell'auto accetta.
 
 E il cliente che ``crea`` restituisce rispetta ``Marca`` qui sotto: entra,
@@ -23,9 +24,9 @@ from types import ModuleType
 from typing import Protocol
 
 from ..vettura import StatoVettura, Vettura
-from . import leapmotor
+from . import leapmotor, stellantis, tesla
 
-MARCHE: dict[str, ModuleType] = {leapmotor.ID: leapmotor}
+MARCHE: dict[str, ModuleType] = {m.ID: m for m in (leapmotor, tesla, stellantis)}
 
 
 class Marca(Protocol):

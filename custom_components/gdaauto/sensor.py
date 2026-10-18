@@ -23,12 +23,12 @@ from homeassistant.const import (
     UnitOfTemperature,
     UnitOfTime,
 )
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from . import GdaautoConfigEntry
 from .auto import Auto
-from .entita import EntitaGdaauto
+from .entita import EntitaGdaauto, Voce, aggiungi_quando_pronte
 from .vettura import Marcia, StatoRicarica, StatoVettura
 
 
@@ -168,27 +168,11 @@ async def async_setup_entry(
     _hass: HomeAssistant, entry: GdaautoConfigEntry, async_add_entities: AddConfigEntryEntitiesCallback
 ) -> None:
     for auto in entry.runtime_data.auto:
-        _aggiungi_quando_ci_sono(auto, entry, async_add_entities)
-
-
-def _aggiungi_quando_ci_sono(auto: Auto, entry: GdaautoConfigEntry, aggiungi: AddConfigEntryEntitiesCallback) -> None:
-    """Un sensore nasce quando la marca dice quel numero: una T03 non ha la
-    temperatura della batteria, e non serve un sensore sempre «sconosciuto».
-    Se il numero arriva più tardi (la prima ricarica), il sensore nasce allora."""
-    fatte: set[str] = set()
-
-    @callback
-    def controlla() -> None:
-        s = auto.data
-        if s is None:
-            return
-        nuove = [d for d in DESCRIZIONI if d.key not in fatte and d.valore(s) is not None]
-        if nuove:
-            fatte.update(d.key for d in nuove)
-            aggiungi([SensoreGdaauto(auto, d) for d in nuove])
-
-    controlla()
-    entry.async_on_unload(auto.async_add_listener(controlla))
+        voci: list[Voce] = [
+            (d.key, lambda a, d=d: d.valore(a.data) is not None, lambda auto=auto, d=d: SensoreGdaauto(auto, d))
+            for d in DESCRIZIONI
+        ]
+        aggiungi_quando_pronte(entry, async_add_entities, auto, voci)
 
 
 class SensoreGdaauto(EntitaGdaauto, SensorEntity):

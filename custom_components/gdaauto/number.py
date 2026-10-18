@@ -9,17 +9,20 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from . import GdaautoConfigEntry
 from .const import COMANDO_LIMITE
-from .entita import EntitaGdaauto
+from .entita import EntitaGdaauto, Voce, aggiungi_quando_pronte
 
 
 async def async_setup_entry(
     _hass: HomeAssistant, entry: GdaautoConfigEntry, async_add_entities: AddConfigEntryEntitiesCallback
 ) -> None:
-    async_add_entities(
-        Limite(a, "limite_ricarica")
-        for a in entry.runtime_data.auto
-        if COMANDO_LIMITE in a.comandi and a.data is not None and a.data.limite_ricarica is not None
-    )
+    for auto in entry.runtime_data.auto:
+        if COMANDO_LIMITE in auto.comandi:
+            voce: Voce = (
+                "limite_ricarica",
+                lambda a: a.data is not None and a.data.limite_ricarica is not None,
+                lambda auto=auto: Limite(auto, "limite_ricarica"),
+            )
+            aggiungi_quando_pronte(entry, async_add_entities, auto, [voce])
 
 
 class Limite(EntitaGdaauto, NumberEntity):

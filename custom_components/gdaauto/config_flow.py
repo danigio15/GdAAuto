@@ -1,20 +1,33 @@
 """La configurazione: da dove arriva l'auto, e come entrarci.
 
 Il primo passo è un menu: una voce per ogni marca che GdAAuto sa leggere da
-sola, più «È già in Home Assistant» per tutte le altre.
+sola, più «È già in Home Assistant» per tutte le altre. Ogni marca entra a
+modo suo:
+
+- **Leapmotor**: email, password e il certificato dell'app;
+- **Tesla**: l'OAuth ufficiale, con le credenziali applicative di Home
+  Assistant (è per questo che il flusso eredita quello OAuth2);
+- **Stellantis**: l'app del marchio e il paese, poi il login nel browser e il
+  codice che il sito restituisce, incollato qui.
 """
 
 from __future__ import annotations
 
 from collections.abc import Mapping
+import logging
 from pathlib import Path
 import shutil
 from typing import Any
 import uuid
 
-from homeassistant.config_entries import ConfigEntry, ConfigFlow, ConfigFlowResult, OptionsFlow
+from homeassistant.config_entries import SOURCE_REAUTH, ConfigEntry, ConfigFlowResult, OptionsFlow
 from homeassistant.core import callback
-from homeassistant.helpers import device_registry as dr, entity_registry as er, selector
+from homeassistant.helpers import (
+    config_entry_oauth2_flow,
+    device_registry as dr,
+    entity_registry as er,
+    selector,
+)
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 import voluptuous as vol
 
@@ -44,8 +57,8 @@ from .const import (
     INTERVALLO_IN_MOTO_PREDEFINITO,
     INTERVALLO_PREDEFINITO,
 )
-from .marche import MARCHE, marca
-from .marche.leapmotor.errori import ErroreCertificato, ErroreCredenziali, ErroreLeapmotor
+from .marche import MARCHE, marca, stellantis, tesla
+from .marche.errori import ErroreCertificato, ErroreCredenziali, ErroreMarca
 
 # Chi preferisce un file al copia-incolla mette i due PEM qui, in /config.
 CARTELLA_PEM = "gdaauto"
@@ -66,13 +79,25 @@ def _campo(c: dict[str, Any]) -> tuple[Any, Any]:
     return chiave, sel
 
 
-class GdaautoConfigFlow(ConfigFlow, domain=DOMAIN):
+class GdaautoConfigFlow(config_entry_oauth2_flow.AbstractOAuth2FlowHandler, domain=DOMAIN):
     VERSION = 1
+    DOMAIN = DOMAIN
 
     def __init__(self) -> None:
+        super().__init__()
         self._marca: str | None = None
         self._dispositivo: str | None = None
         self._proposta: dict[str, Any] = {}
+        self._stellantis: dict[str, str] = {}
+
+    @property
+    def logger(self) -> logging.Logger:
+        return logging.getLogger(__name__)
+
+    @property
+    def extra_authorize_data(self) -> dict[str, Any]:
+        """Quello che Tesla vuole nel link del login (solo Tesla usa l'OAuth di Home Assistant)."""
+        return {"scope": " ".join(tesla.SCOPE), "prompt": "login"}
 
     # --- il menu ------------------------------------------------------------
 
@@ -107,7 +132,7 @@ class GdaautoConfigFlow(ConfigFlow, domain=DOMAIN):
             return {"base": "credenziali"}, 0
         except ErroreCertificato:
             return {"base": "certificato"}, 0
-        except ErroreLeapmotor:
+        except ErroreMarca:
             return {"base": "rete"}, 0
         finally:
             await self.hass.async_add_executor_job(shutil.rmtree, cartella, True)
@@ -138,7 +163,15 @@ class GdaautoConfigFlow(ConfigFlow, domain=DOMAIN):
             description_placeholders={"cartella": f"/config/{CARTELLA_PEM}"},
         )
 
-    async def async_step_reauth(self, _dati: Mapping[str, Any]) -> ConfigFlowResult:
+    async def async_step_reauth(self, dati: Mapping[str, Any]) -> ConfigFlowResult:
+        if dati.get(CONF_MARCA) == tesla.ID:
+            return await self.async_step_reauth_tesla()
+        if dati.get(CONF_MARCA) == stellantis.ID:
+            self._stellantis = {
+                stellantis.CONF_APP: dati[stellantis.CONF_APP],
+                stellantis.CONF_PAESE: dati[stellantis.CONF_PAESE],
+            }
+            return await self.async_step_stellantis_codice()
         return await self.async_step_reauth_confirm()
 
     async def async_step_reauth_confirm(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
@@ -163,6 +196,119 @@ class GdaautoConfigFlow(ConfigFlow, domain=DOMAIN):
             data_schema=schema,
             errors=errori,
             description_placeholders={"email": voce.data.get("email", "")},
+        )
+
+    # --- Tesla, con l'OAuth di Home Assistant ----------------------------------
+
+    async def async_step_tesla(self, _user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
+        """Le credenziali dell'app sviluppatore le tiene Home Assistant: se non ci
+        sono ancora, è Home Assistant stesso a dire dove metterle."""
+        return await self.async_step_pick_implementation()
+
+    async def async_step_reauth_tesla(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
+        if user_input is None:
+            return self.async_show_form(step_id="reauth_tesla")
+        return await self.async_step_pick_implementation()
+
+    async def async_oauth_create_entry(self, data: dict[str, Any]) -> ConfigFlowResult:
+        token = str(data["token"]["access_token"])
+        chi = tesla.dal_token(token).get("sub")
+        if not chi:
+            return self.async_abort(reason="oauth_error")
+        await self.async_set_unique_id(f"tesla_{chi}")
+        if self.source == SOURCE_REAUTH:
+            self._abort_if_unique_id_mismatch(reason="account_diverso")
+            return self.async_update_reload_and_abort(self._get_reauth_entry(), data_updates=data)
+        self._abort_if_unique_id_configured()
+
+        async def fisso() -> str:
+            return token
+
+        cliente = tesla.ClienteTesla(async_get_clientsession(self.hass), fisso, tesla.regione(token))
+        try:
+            vetture = await cliente.vetture()
+        except ErroreCredenziali:
+            return self.async_abort(reason="oauth_unauthorized")
+        except ErroreMarca:
+            return self.async_abort(reason="rete")
+        if not vetture:
+            return self.async_abort(reason="nessuna_auto")
+        nomi = ", ".join(v.titolo for v in vetture)
+        return self.async_create_entry(
+            title=f"Tesla · {nomi}", data={**data, CONF_FONTE: FONTE_CLOUD, CONF_MARCA: tesla.ID}
+        )
+
+    # --- Stellantis, col codice del login incollato --------------------------------
+
+    async def async_step_stellantis(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
+        if user_input is not None:
+            self._stellantis = {stellantis.CONF_APP: user_input[stellantis.CONF_APP]}
+            return await self.async_step_stellantis_paese()
+        schema = vol.Schema(
+            {
+                vol.Required(stellantis.CONF_APP): selector.SelectSelector(
+                    selector.SelectSelectorConfig(
+                        options=list(stellantis.APP),
+                        translation_key="app_stellantis",
+                        mode=selector.SelectSelectorMode.LIST,
+                    )
+                )
+            }
+        )
+        return self.async_show_form(step_id="stellantis", data_schema=schema)
+
+    async def async_step_stellantis_paese(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
+        if user_input is not None:
+            self._stellantis[stellantis.CONF_PAESE] = user_input[stellantis.CONF_PAESE]
+            return await self.async_step_stellantis_codice()
+        paesi = sorted(stellantis.APP[self._stellantis[stellantis.CONF_APP]]["paesi"])
+        predefinito = "IT" if "IT" in paesi else paesi[0]
+        schema = vol.Schema(
+            {
+                vol.Required(stellantis.CONF_PAESE, default=predefinito): selector.SelectSelector(
+                    selector.SelectSelectorConfig(options=paesi, mode=selector.SelectSelectorMode.DROPDOWN)
+                )
+            }
+        )
+        return self.async_show_form(step_id="stellantis_paese", data_schema=schema)
+
+    async def async_step_stellantis_codice(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
+        app = self._stellantis[stellantis.CONF_APP]
+        paese = self._stellantis[stellantis.CONF_PAESE]
+        errori: dict[str, str] = {}
+        if user_input is not None:
+            codice = stellantis.codice_da(user_input["codice"])
+            cliente = stellantis.ClienteStellantis(async_get_clientsession(self.hass), app, paese, {})
+            try:
+                token = await cliente.scambia_codice(codice)
+                vetture = await cliente.vetture()
+            except ErroreCredenziali:
+                errori["base"] = "codice"
+            except ErroreMarca:
+                errori["base"] = "rete"
+            else:
+                if not vetture:
+                    errori["base"] = "nessuna_auto"
+                else:
+                    dati = {
+                        CONF_FONTE: FONTE_CLOUD,
+                        CONF_MARCA: stellantis.ID,
+                        stellantis.CONF_APP: app,
+                        stellantis.CONF_PAESE: paese,
+                        stellantis.CONF_TOKEN: token,
+                    }
+                    await self.async_set_unique_id(f"stellantis_{min(v.vin for v in vetture)}")
+                    if self.source == SOURCE_REAUTH:
+                        return self.async_update_reload_and_abort(self._get_reauth_entry(), data_updates=dati)
+                    self._abort_if_unique_id_configured()
+                    titolo = f"{stellantis.MARCHI.get(app, 'Stellantis')} · {len(vetture)} auto"
+                    return self.async_create_entry(title=titolo, data=dati)
+        schema = vol.Schema({vol.Required("codice"): selector.TextSelector()})
+        return self.async_show_form(
+            step_id="stellantis_codice",
+            data_schema=schema,
+            errors=errori,
+            description_placeholders={"link": stellantis.indirizzo_login(app, paese)},
         )
 
     # --- un'auto che c'è già in Home Assistant -----------------------------
@@ -259,13 +405,22 @@ class GdaautoOptionsFlow(OptionsFlow):
             return self.async_create_entry(data=user_input)
         cloud = self.config_entry.data.get(CONF_FONTE) != FONTE_HA
         campi: dict[Any, Any] = {}
+        comandi = True
         if cloud:
             modulo = marca(self.config_entry.data[CONF_MARCA])
             if getattr(modulo, "VUOLE_PIN", False):
                 campi[vol.Optional(CONF_PIN)] = selector.TextSelector(
                     selector.TextSelectorConfig(type=selector.TextSelectorType.PASSWORD)
                 )
-            campi[vol.Required(CONF_INTERVALLO, default=INTERVALLO_PREDEFINITO)] = selector.NumberSelector(
+            if modulo is tesla:
+                campi[vol.Optional(tesla.CONF_PROXY)] = selector.TextSelector(
+                    selector.TextSelectorConfig(type=selector.TextSelectorType.URL)
+                )
+                campi[vol.Required(tesla.CONF_PROXY_VERIFICA, default=True)] = selector.BooleanSelector()
+            # Una marca senza comandi (Stellantis, per ora) non ha niente da accendere.
+            comandi = modulo is not stellantis
+            predefinito = getattr(modulo, "INTERVALLO_MINUTI", INTERVALLO_PREDEFINITO)
+            campi[vol.Required(CONF_INTERVALLO, default=predefinito)] = selector.NumberSelector(
                 selector.NumberSelectorConfig(min=1, max=60, step=1, unit_of_measurement="min")
             )
             campi[vol.Required(CONF_INTERVALLO_IN_MOTO, default=INTERVALLO_IN_MOTO_PREDEFINITO)] = (
@@ -274,14 +429,15 @@ class GdaautoOptionsFlow(OptionsFlow):
                 )
             )
             campi[vol.Required(CONF_RISPARMIO, default=True)] = selector.BooleanSelector()
-        campi[vol.Required(CONF_COMANDI_ATTIVI, default=COMANDI_ATTIVI_PREDEFINITI)] = selector.SelectSelector(
-            selector.SelectSelectorConfig(
-                options=_TUTTI_I_COMANDI,
-                multiple=True,
-                translation_key=CONF_COMANDI_ATTIVI,
-                mode=selector.SelectSelectorMode.LIST,
+        if comandi:
+            campi[vol.Required(CONF_COMANDI_ATTIVI, default=COMANDI_ATTIVI_PREDEFINITI)] = selector.SelectSelector(
+                selector.SelectSelectorConfig(
+                    options=_TUTTI_I_COMANDI,
+                    multiple=True,
+                    translation_key=CONF_COMANDI_ATTIVI,
+                    mode=selector.SelectSelectorMode.LIST,
+                )
             )
-        )
         schema = self.add_suggested_values_to_schema(vol.Schema(campi), self.config_entry.options)
         return self.async_show_form(step_id="init", data_schema=schema)
 

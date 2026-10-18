@@ -5,7 +5,7 @@
 <h3 align="center">Tutte le auto elettriche in Home Assistant, con la stessa faccia.<br>E dentro GdAHome e gdanav da sole.</h3>
 
 <p align="center">
-  Leapmotor dal suo cloud · Tesla, Stellantis, Kia, BMW, Renault e le altre da Home Assistant
+  Leapmotor, Tesla e Stellantis dal loro cloud · Kia, BMW, Renault e tutte le altre da Home Assistant
 </p>
 
 ---
@@ -27,8 +27,16 @@ a ogni modifica.
 
 | | Come | Per chi |
 | --- | --- | --- |
-| **La marca** | GdAAuto parla direttamente col cloud del costruttore | **Leapmotor**: T03, B05, B10, C10, C16 e i modelli che verranno |
-| **Home Assistant** | L'auto ha già la sua integrazione; GdAAuto la legge da lì | **Tesla, Stellantis** (Peugeot, Fiat, Opel, Citroën, Jeep…), **Kia e Hyundai, BMW, Renault, Volkswagen, Polestar** e tutte le altre |
+| **La marca** | GdAAuto parla direttamente col cloud del costruttore | **Leapmotor**: T03, B05, B10, C10, C16 e i modelli che verranno · **Tesla**: tutte, con l'API ufficiale · **Stellantis**: Peugeot, Citroën, DS, Opel, Vauxhall |
+| **Home Assistant** | L'auto ha già la sua integrazione; GdAAuto la legge da lì | **Kia e Hyundai, BMW, Renault, Volkswagen, Polestar, Fiat, Jeep** e tutte le altre |
+
+Quello che ogni marca nativa sa fare:
+
+| | Legge | Comanda |
+| --- | :---: | --- |
+| **Leapmotor** | ✓ | chiudi e apri, clima, ricarica, limite, trova, destinazione (col PIN dell'auto) |
+| **Tesla** | ✓ | chiudi e apri, clima, ricarica, limite, trova, destinazione |
+| **Stellantis** | ✓ | per ora nessuno: i comandi passano da MQTT con un codice via SMS, e arriveranno |
 
 Con la seconda strada GdAAuto guarda le entità del dispositivo dell'auto e
 **propone da solo** quale è la batteria, quale l'autonomia, quale la serratura.
@@ -69,14 +77,62 @@ Quando qualcuno preme «Aggiorna», o gdanav in viaggio chiede dati freschi, si
 legge subito: una lettura sola anche se la chiedono in tanti, mai più di una
 ogni 30 secondi.
 
+## Tesla
+
+GdAAuto usa la **Fleet API**, l'API ufficiale di Tesla. Serve un'app
+sviluppatore Tesla:
+
+1. **L'app su [developer.tesla.com](https://developer.tesla.com).** Indirizzo
+   di ritorno `https://my.home-assistant.io/redirect/oauth`, permessi su dati,
+   posizione, comandi e ricarica dell'auto. L'app va registrata nella regione
+   dell'auto, con la chiave pubblica pubblicata sul tuo dominio: è lo stesso
+   passo che fa l'integrazione Tesla Fleet di Home Assistant. **Se usi già
+   Tesla Fleet, l'app ce l'hai: va bene la stessa.**
+2. **Le credenziali in Home Assistant.** Impostazioni → Dispositivi e servizi
+   → Credenziali applicative → aggiungi, integrazione **GdAAuto**, con il
+   Client ID e il Client Secret dell'app.
+3. **Aggiungi GdAAuto → Tesla**, ed entra col tuo account Tesla. La regione
+   la capisce da sola.
+
+**L'auto che dorme non si sveglia per leggerla**: ogni lettura e ogni
+sveglia costano a chi ha l'app sviluppatore. Da addormentata restano gli
+ultimi dati, con l'entità «In sonno» accesa; si sveglia solo per un comando.
+Da ferma si legge ogni 10 minuti.
+
+**I comandi firmati.** Le Tesla dal 2021 vogliono i comandi firmati con la
+chiave dell'app (Vehicle Command Protocol). Indica nelle opzioni l'indirizzo
+del proxy ufficiale di Tesla, `tesla-http-proxy`, che li firma: GdAAuto
+manda lì i comandi e continua a leggere dalla Fleet API. Senza proxy i
+comandi vanno solo sulle auto più vecchie, e GdAAuto dice perché quando
+non passano.
+
+## Stellantis
+
+Peugeot, Citroën, DS, Opel e Vauxhall, elettriche e ibride plug-in, col
+cloud dell'app del marchio (MyPeugeot, MyCitroën, MyDS, MyOpel, MyVauxhall).
+Fiat, Jeep, Alfa Romeo e Lancia usano un altro cloud: per loro c'è la
+strada «È già in Home Assistant».
+
+1. **Aggiungi GdAAuto → Stellantis**, scegli l'app e il paese.
+2. **Entra nel browser di un computer**, col link che GdAAuto ti mostra e gli
+   strumenti per sviluppatori aperti (F12, scheda Rete).
+3. Alla fine il browser prova ad aprire un indirizzo come
+   `mymap://oauth2redirect/it?code=…` e non ci riesce: **copialo e incollalo**
+   in GdAAuto. Va bene anche solo il codice.
+
+Email e password restano nel tuo browser: GdAAuto non le vede e non le
+manda a nessuno. Il token si rinnova da solo; se un giorno non va più, Home
+Assistant chiede di rifare il login.
+
 ## La sicurezza dei comandi
 
 - **Aprire l'auto da lontano è spento** finché non lo accendi nelle opzioni.
   Chiudere si può sempre.
 - Ogni comando si accende o si spegne a parte, nelle opzioni.
-- Il PIN, la password e i certificati non escono mai da Home Assistant. I
-  certificati stanno in `.storage/gdaauto`, leggibili solo da Home Assistant.
-- La diagnostica toglie email, password, PIN, VIN, targa e posizione.
+- Il PIN, la password, i token e i certificati non escono mai da Home
+  Assistant. I certificati stanno in `.storage/gdaauto`, leggibili solo da
+  Home Assistant.
+- La diagnostica toglie email, password, PIN, token, VIN, targa e posizione.
 
 ## Come arriva a GdAHome e a gdanav
 
@@ -117,7 +173,8 @@ e [leapmotor-mate](https://github.com/ProtossBlaster/leapmotor-mate). Cosa fa
 di diverso:
 
 - **Più marche, una faccia.** Le altre sono solo Leapmotor; GdAAuto mette
-  Leapmotor e le auto di Home Assistant sotto le stesse entità.
+  Leapmotor, Tesla, Stellantis e le auto di Home Assistant sotto le stesse
+  entità.
 - **Asincrona davvero.** Il TLS reciproco col cloud lo fa `aiohttp`; non si
   lancia `curl` in un processo a parte per ogni richiesta.
 - **Il ritmo segue l'auto**: più spesso in marcia e in carica, meno da chiusa.

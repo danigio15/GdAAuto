@@ -51,11 +51,63 @@ vengono i **fatti** che GdAAuto usa: quale numero è la batteria, quale
 indirizzo legge lo stato. Il codice di quel progetto è sotto AGPL-3.0 e
 **non è stato copiato**: il cliente di GdAAuto è scritto da capo.
 
+## andreadegiovine/homeassistant-stellantis-vehicles — licenza MIT
+
+<https://github.com/andreadegiovine/homeassistant-stellantis-vehicles>
+
+Da qui vengono:
+
+- `custom_components/gdaauto/marche/stellantis/app.json`: indirizzi, realm,
+  schemi di ritorno e credenziali delle app MyPeugeot, MyCitroën, MyDS,
+  MyOpel e MyVauxhall, paese per paese (il loro `configs.json`, ridotto ai
+  campi che servono);
+- gli indirizzi del Connected Car API v4 e la forma dei parametri del login;
+- dove stanno, nello stato dell'auto, batteria, autonomia, ricarica, porte,
+  posizione.
+
+Il codice di GdAAuto è scritto da capo, e il login non passa dal loro
+servizio remoto: chi configura entra nel suo browser.
+
+```
+MIT License
+
+Copyright (c) 2023
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
+## Tesla — la documentazione ufficiale
+
+La Fleet API è documentata da Tesla su <https://developer.tesla.com/docs/fleet-api>.
+Il cliente di GdAAuto è scritto da capo su quella. Per la forma delle
+risposte si sono guardati anche Teslemetry/python-tesla-fleet-api (Apache-2.0)
+e l'integrazione Tesla Fleet di Home Assistant (Apache-2.0), senza copiarne
+il codice; il proxy dei comandi firmati è teslamotors/vehicle-command
+(Apache-2.0), che si usa così com'è, accanto a GdAAuto.
+
 ## Gli altri progetti guardati
 
 - helix-git/ha-leapmotor-gateway: l'idea dei comandi pericolosi spenti di base.
 - ProtossBlaster/leapmotor-mate: le note sul consumo della batteria da 12 V e
   sull'account dedicato.
+- flobz/psa_car_controller (GPL-3.0): guardato per capire il cloud
+  Stellantis, non copiato.
 
 ## Il carattere del logo
 

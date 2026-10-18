@@ -10,13 +10,13 @@ from homeassistant.components.binary_sensor import (
     BinarySensorEntity,
     BinarySensorEntityDescription,
 )
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from . import GdaautoConfigEntry
 from .auto import Auto
 from .const import COMANDO_CHIUDI
-from .entita import EntitaGdaauto
+from .entita import EntitaGdaauto, Voce, aggiungi_quando_pronte
 from .vettura import StatoVettura
 
 
@@ -34,6 +34,7 @@ DESCRIZIONI: tuple[Descrizione, ...] = (
     Descrizione(key="quadro", device_class=BinarySensorDeviceClass.POWER, valore=lambda s: s.quadro_acceso),
     Descrizione(key="clima_acceso", valore=lambda s: s.clima_acceso),
     Descrizione(key="sentinella", valore=lambda s: s.sentinella),
+    Descrizione(key="in_sonno", valore=lambda s: s.in_sonno),
     # La serratura come sola lettura, quando non si può comandare (niente
     # PIN, o la marca non lo permette). Per Home Assistant «on» è aperta.
     Descrizione(
@@ -44,33 +45,24 @@ DESCRIZIONI: tuple[Descrizione, ...] = (
 )
 
 
+def _pronta(d: Descrizione) -> Callable[[Auto], bool]:
+    def pronta(a: Auto) -> bool:
+        if a.data is None or d.valore(a.data) is None:
+            return False
+        # Con la serratura o il clima comandabili c'è già l'entità che comanda.
+        if d.key == "serratura" and COMANDO_CHIUDI in a.comandi:
+            return False
+        return not (d.key == "clima_acceso" and "clima" in a.comandi)
+
+    return pronta
+
+
 async def async_setup_entry(
     _hass: HomeAssistant, entry: GdaautoConfigEntry, async_add_entities: AddConfigEntryEntitiesCallback
 ) -> None:
     for auto in entry.runtime_data.auto:
-        fatte: set[str] = set()
-
-        @callback
-        def controlla(auto: Auto = auto, fatte: set[str] = fatte) -> None:
-            s = auto.data
-            if s is None:
-                return
-            nuove = [
-                d
-                for d in DESCRIZIONI
-                if d.key not in fatte
-                and d.valore(s) is not None
-                # Con la serratura comandabile c'è il lucchetto vero.
-                and not (d.key == "serratura" and COMANDO_CHIUDI in auto.comandi)
-                # Col clima comandabile c'è l'interruttore.
-                and not (d.key == "clima_acceso" and "clima" in auto.comandi)
-            ]
-            if nuove:
-                fatte.update(d.key for d in nuove)
-                async_add_entities([BinarioGdaauto(auto, d) for d in nuove])
-
-        controlla()
-        entry.async_on_unload(auto.async_add_listener(controlla))
+        voci: list[Voce] = [(d.key, _pronta(d), lambda auto=auto, d=d: BinarioGdaauto(auto, d)) for d in DESCRIZIONI]
+        aggiungi_quando_pronte(entry, async_add_entities, auto, voci)
 
 
 class BinarioGdaauto(EntitaGdaauto, BinarySensorEntity):

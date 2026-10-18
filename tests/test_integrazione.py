@@ -304,7 +304,7 @@ async def test_una_tesla_diventa_un_auto_gdaauto(hass: HomeAssistant, tesla: str
 async def test_configurare_un_auto_che_c_e_gia(hass: HomeAssistant, tesla: str) -> None:
     r = await hass.config_entries.flow.async_init(DOMAIN, context={"source": config_entries.SOURCE_USER})
     assert r["type"] is FlowResultType.MENU
-    assert set(r["menu_options"]) == {"leapmotor", "home_assistant"}
+    assert set(r["menu_options"]) == {"leapmotor", "tesla", "stellantis", "home_assistant"}
     r = await hass.config_entries.flow.async_configure(r["flow_id"], {"next_step_id": "home_assistant"})
     r = await hass.config_entries.flow.async_configure(r["flow_id"], {CONF_DISPOSITIVO: tesla})
     assert r["step_id"] == "entita"

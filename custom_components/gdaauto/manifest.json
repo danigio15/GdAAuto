@@ -1,14 +1,21 @@
 {
   "domain": "gdaauto",
   "name": "GdAAuto",
-  "codeowners": ["@danigio15"],
+  "codeowners": [
+    "@danigio15"
+  ],
   "config_flow": true,
-  "dependencies": [],
+  "dependencies": [
+    "application_credentials",
+    "http"
+  ],
   "documentation": "https://github.com/danigio15/GdAAuto",
   "integration_type": "hub",
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/danigio15/GdAAuto/issues",
-  "loggers": ["custom_components.gdaauto"],
+  "loggers": [
+    "custom_components.gdaauto"
+  ],
   "requirements": [],
-  "version": "0.1.0"
+  "version": "0.2.0"
 }

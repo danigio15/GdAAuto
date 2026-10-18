@@ -6,6 +6,8 @@
         "description": "Da dove arriva la tua auto?",
         "menu_options": {
           "leapmotor": "Leapmotor",
+          "tesla": "Tesla",
+          "stellantis": "Stellantis: Peugeot, Citroën, DS, Opel, Vauxhall",
           "home_assistant": "È già in Home Assistant (Tesla, Stellantis, Kia, BMW…)"
         }
       },
@@ -58,6 +60,34 @@
           "trova": "Pulsante per trovarla (clacson/luci)",
           "posizione": "Posizione"
         }
+      },
+      "pick_implementation": {
+        "title": "Scegli le credenziali Tesla"
+      },
+      "reauth_tesla": {
+        "title": "Rientra in Tesla",
+        "description": "Tesla non accetta più l'accesso di GdAAuto. Rientra con lo stesso account."
+      },
+      "stellantis": {
+        "title": "Stellantis",
+        "description": "Quale app usi per la tua auto? Fiat, Jeep, Alfa Romeo e Lancia usano un altro cloud: per loro scegli «È già in Home Assistant».",
+        "data": {
+          "app": "App"
+        }
+      },
+      "stellantis_paese": {
+        "title": "Stellantis",
+        "description": "Il paese dell'account: decide da quale sito si entra.",
+        "data": {
+          "paese": "Paese"
+        }
+      },
+      "stellantis_codice": {
+        "title": "Entra nel tuo account",
+        "description": "Da un **computer**:\n\n1. apri gli strumenti per sviluppatori del browser (F12), scheda **Rete**;\n2. apri [questo link]({link}) ed entra col tuo account;\n3. alla fine il browser prova ad aprire un indirizzo che inizia con `mymap://`, `mymacsdk://` o simile, e non ci riesce: è giusto così;\n4. copia quell'indirizzo dalla scheda **Rete** (contiene `code=`) e incollalo qui. Va bene anche solo il codice.\n\nIl codice vale pochi minuti. Email e password restano nel tuo browser: GdAAuto non le vede.",
+        "data": {
+          "codice": "Indirizzo o codice"
+        }
       }
     },
     "error": {
@@ -68,24 +98,42 @@
       "nessuna_auto": "L'account non ha auto, nemmeno condivise.",
       "dispositivo": "Il dispositivo non esiste più.",
       "gia_gdaauto": "Questo è già un dispositivo GdAAuto: scegli quello dell'integrazione dell'auto.",
-      "batteria": "Serve almeno la batteria."
+      "batteria": "Serve almeno la batteria.",
+      "codice": "Il codice non va, o è scaduto. Rifai il login e incolla quello nuovo."
     },
     "abort": {
       "already_configured": "Questa auto o questo account ci sono già.",
-      "reauth_successful": "Fatto: si è rientrati."
+      "reauth_successful": "Fatto: si è rientrati.",
+      "rete": "Il cloud non risponde. Riprova fra poco.",
+      "nessuna_auto": "L'account non ha auto.",
+      "account_diverso": "Hai fatto l'accesso con un altro account.",
+      "missing_credentials": "Mancano le credenziali dell'app sviluppatore Tesla: aggiungile in Impostazioni → Dispositivi e servizi → Credenziali applicative.",
+      "missing_configuration": "Mancano le credenziali dell'app sviluppatore Tesla.",
+      "authorize_url_timeout": "Tesla non ha risposto in tempo con il link del login.",
+      "no_url_available": "Home Assistant non ha un indirizzo a cui Tesla possa tornare.",
+      "oauth_error": "Tesla ha restituito un token che non si capisce.",
+      "oauth_timeout": "Il login con Tesla è durato troppo.",
+      "oauth_unauthorized": "Tesla non autorizza l'accesso.",
+      "oauth_failed": "Il login con Tesla non è riuscito.",
+      "user_rejected_authorize": "Hai rifiutato l'accesso su Tesla."
+    },
+    "create_entry": {
+      "default": "Fatto: l'auto è in GdAAuto."
     }
   },
   "options": {
     "step": {
       "init": {
         "title": "GdAAuto",
-        "description": "Il PIN serve per i comandi all'auto (chiudere, clima, ricarica). Aprire l'auto da lontano è spento finché non lo accendi qui.",
+        "description": "Il PIN serve per i comandi alle Leapmotor. Le Tesla dal 2021 vogliono i comandi firmati: indica il proxy ufficiale tesla-http-proxy. Aprire l'auto da lontano è spento finché non lo accendi qui.",
         "data": {
           "pin": "PIN dell'auto",
           "intervallo_minuti": "Ogni quanto leggere l'auto da ferma",
           "intervallo_in_moto_secondi": "Ogni quanto leggerla in marcia o in carica",
           "risparmio": "Leggere meno spesso quando è chiusa e senza cavo",
-          "comandi_attivi": "Comandi accesi"
+          "comandi_attivi": "Comandi accesi",
+          "proxy": "Proxy dei comandi firmati (tesla-http-proxy)",
+          "proxy_verifica": "Verifica il certificato del proxy"
         }
       }
     }
@@ -99,6 +147,15 @@
         "limite_ricarica": "Limite di ricarica",
         "destinazione": "Manda una destinazione al navigatore dell'auto",
         "apri": "Apri l'auto da lontano"
+      }
+    },
+    "app_stellantis": {
+      "options": {
+        "MyPeugeot": "MyPeugeot",
+        "MyCitroen": "MyCitroën",
+        "MyDS": "MyDS",
+        "MyOpel": "MyOpel",
+        "MyVauxhall": "MyVauxhall"
       }
     }
   },
@@ -201,6 +258,9 @@
       },
       "serratura": {
         "name": "Serratura"
+      },
+      "in_sonno": {
+        "name": "In sonno"
       }
     },
     "lock": {
@@ -283,5 +343,8 @@
         }
       }
     }
+  },
+  "application_credentials": {
+    "description": "Le credenziali dell'app sviluppatore Tesla, da {developer}. Nell'app l'indirizzo di ritorno deve essere {redirect}."
   }
 }

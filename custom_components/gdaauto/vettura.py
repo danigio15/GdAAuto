@@ -72,8 +72,11 @@ class StatoVettura:
     longitudine: float | None = None
     posizione_con_segno: bool = False
     letto: datetime | None = None
-    #: quando l'integrazione della marca dice già la potenza di ricarica
+    #: quando la marca dice già la potenza di ricarica, o quella in marcia
     potenza_ricarica_diretta_kw: float | None = None
+    potenza_diretta_kw: float | None = None
+    #: l'auto dorme: i dati sono quelli di quando si è addormentata
+    in_sonno: bool | None = None
     grezzo: dict[str, Any] = field(default_factory=dict)
 
     # --- quello che si ricava --------------------------------------------
@@ -110,6 +113,8 @@ class StatoVettura:
     @property
     def potenza_kw(self) -> float | None:
         """La potenza che l'auto sta usando per muoversi (0 da ferma)."""
+        if self.potenza_diretta_kw is not None:
+            return max(self.potenza_diretta_kw, 0.0)
         p = self.potenza_batteria_kw
         if p is None:
             return None

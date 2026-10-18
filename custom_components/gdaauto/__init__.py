@@ -14,13 +14,13 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import shutil
+from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady, ServiceValidationError
 from homeassistant.helpers import config_validation as cv, device_registry as dr
-from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.typing import ConfigType
 import voluptuous as vol
 
@@ -38,7 +38,7 @@ from .const import (
     SERVIZIO_DESTINAZIONE,
 )
 from .marche import marca
-from .marche.leapmotor.errori import ErroreCertificato, ErroreCredenziali, ErroreLeapmotor
+from .marche.errori import ErroreCertificato, ErroreCredenziali, ErroreMarca
 from .vettura import Vettura
 
 PIATTAFORME = [
@@ -58,6 +58,8 @@ CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 class Dati:
     auto: list[Auto]
     conto: Conto | None = None
+    #: le opzioni con cui è partita: si ricarica solo se cambiano quelle
+    opzioni: dict[str, Any] | None = None
 
 
 type GdaautoConfigEntry = ConfigEntry[Dati]
@@ -126,10 +128,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: GdaautoConfigEntry) -> b
 
 async def _avvia_cloud(hass: HomeAssistant, entry: GdaautoConfigEntry) -> Dati:
     modulo = marca(entry.data[CONF_MARCA])
-    # La sessione di tutti va bene: il certificato si passa a ogni richiesta,
-    # e le connessioni con certificati diversi non si mescolano.
-    sessione = async_get_clientsession(hass)
-    cliente = modulo.crea(sessione, dict(entry.data), cartella_certificati(hass, entry.entry_id), hass.config.language)
+    cliente = await modulo.crea_da_voce(hass, entry, cartella_certificati(hass, entry.entry_id))
     try:
         await cliente.accedi()
         vetture: list[Vettura] = await cliente.vetture()
@@ -139,9 +138,9 @@ async def _avvia_cloud(hass: HomeAssistant, entry: GdaautoConfigEntry) -> Dati:
             await a.async_config_entry_first_refresh()
     except (ErroreCredenziali, ErroreCertificato) as err:
         raise ConfigEntryAuthFailed(str(err)) from err
-    except ErroreLeapmotor as err:
+    except ErroreMarca as err:
         raise ConfigEntryNotReady(str(err)) from err
-    return Dati(auto=auto, conto=conto)
+    return Dati(auto=auto, conto=conto, opzioni=dict(entry.options))
 
 
 async def _avvia_ha(hass: HomeAssistant, entry: GdaautoConfigEntry) -> Dati:
@@ -157,7 +156,7 @@ async def _avvia_ha(hass: HomeAssistant, entry: GdaautoConfigEntry) -> Dati:
     a = AutoHA(hass, entry, vettura, dict(entry.data.get(CONF_MAPPA) or {}))
     a.async_set_updated_data(a.leggi())
     await a.async_ascolta()
-    return Dati(auto=[a])
+    return Dati(auto=[a], opzioni=dict(entry.options))
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: GdaautoConfigEntry) -> bool:
@@ -174,11 +173,27 @@ async def async_remove_entry(hass: HomeAssistant, entry: GdaautoConfigEntry) -> 
 
 
 async def _opzioni_cambiate(hass: HomeAssistant, entry: GdaautoConfigEntry) -> None:
-    await hass.config_entries.async_reload(entry.entry_id)
+    # Anche un token nuovo aggiorna la voce: quello non è un motivo per ricaricare.
+    if dict(entry.options) != entry.runtime_data.opzioni:
+        await hass.config_entries.async_reload(entry.entry_id)
 
 
 def chiavi_da_redigere() -> set[str]:
-    return {"email", "password", "cert_app", "chiave_app", "pin", "vin", "targa", "latitudine", "longitudine"}
+    return {
+        "email",
+        "password",
+        "cert_app",
+        "chiave_app",
+        "pin",
+        "vin",
+        "targa",
+        "latitudine",
+        "longitudine",
+        "token",
+        "access_token",
+        "refresh_token",
+        "proxy",
+    }
 
 
 __all__ = ["Dati", "GdaautoConfigEntry", "cartella_certificati", "chiavi_da_redigere"]
