@@ -317,11 +317,10 @@ async def test_configurare_un_auto_che_c_e_gia(hass: HomeAssistant, tesla: str) 
     r = await hass.config_entries.flow.async_init(DOMAIN, context={"source": config_entries.SOURCE_USER})
     assert r["type"] is FlowResultType.FORM
     assert r["step_id"] == "user"
-    # Volvo non è nativa: GdAAuto dice quale integrazione installare.
-    r = await hass.config_entries.flow.async_configure(r["flow_id"], {"marchio_scelto": "volvo"})
+    # Un marchio fuori dal catalogo: si prendono le entità di un'altra integrazione.
+    r = await hass.config_entries.flow.async_configure(r["flow_id"], {"marchio_scelto": "altro"})
     assert r["step_id"] == "home_assistant"
-    assert r["description_placeholders"]["marchio"] == "Volvo"
-    assert "volvo" in r["description_placeholders"]["link"]
+    assert r["description_placeholders"]["marchio"] == ""
     r = await hass.config_entries.flow.async_configure(r["flow_id"], {CONF_DISPOSITIVO: tesla})
     assert r["step_id"] == "entita"
     assert r["description_placeholders"]["trovate"] == "9"

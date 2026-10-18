@@ -78,7 +78,7 @@ MARCHI: tuple[Marchio, ...] = (
         "https://github.com/andreadegiovine/homeassistant-stellantis-vehicles",
     ),
     Marchio("fiat", "Fiat", "uconnect", {"marchio": "fiat"}, _U, _U_LINK),
-    Marchio("ford", "Ford", ha="FordPass (HACS)", link="https://github.com/itchannel/fordpass-ha"),
+    Marchio("ford", "Ford", "ford", {}, "FordPass (HACS)", "https://github.com/marq24/ha-fordpass"),
     Marchio(
         "genesis",
         "Genesis",
@@ -186,7 +186,7 @@ MARCHI: tuple[Marchio, ...] = (
     Marchio(
         "polestar", "Polestar", "polestar", {}, "Polestar API (HACS)", "https://github.com/pypolestar/polestar_api"
     ),
-    Marchio("porsche", "Porsche", ha="Porsche Connect (HACS)", link="https://github.com/CJNE/ha-porscheconnect"),
+    Marchio("porsche", "Porsche", "porsche", {}, "Porsche Connect (HACS)", "https://github.com/CJNE/ha-porscheconnect"),
     Marchio("renault", "Renault", "renault", {"marchio": "renault"}, "Renault", HA + "renault"),
     Marchio("rivian", "Rivian", ha="Rivian (HACS)", link="https://github.com/bretterer/home-assistant-rivian"),
     Marchio("seat", "Seat", ha=_VW),
@@ -216,7 +216,7 @@ MARCHI: tuple[Marchio, ...] = (
         "https://github.com/andreadegiovine/homeassistant-stellantis-vehicles",
     ),
     Marchio("volkswagen", "Volkswagen", ha=_VW),
-    Marchio("volvo", "Volvo", ha="Volvo (integrazione ufficiale di Home Assistant)", link=HA + "volvo"),
+    Marchio("volvo", "Volvo", "volvo", {}, "Volvo (integrazione ufficiale di Home Assistant)", HA + "volvo"),
     Marchio("xpeng", "Xpeng", ha=_NESSUNA),
     Marchio("zeekr", "Zeekr", ha=_NESSUNA),
 )

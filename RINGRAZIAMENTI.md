@@ -495,6 +495,114 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
+## Volvo — l'integrazione Volvo di Home Assistant (Apache 2.0) e la documentazione di Volvo Cars
+
+<https://github.com/home-assistant/core/tree/dev/homeassistant/components/volvo> ·
+<https://developer.volvocars.com>
+
+Dall'integrazione `volvo` di Home Assistant (Apache License 2.0,
+<http://www.apache.org/licenses/LICENSE-2.0>, copyright degli autori di Home
+Assistant) vengono il giro del login OAuth2 con PKCE e le credenziali
+dell'applicazione dell'utente, l'elenco degli scope, la mappa dei campi e dei
+valori (porte `OPEN`/`AJAR`, gomme `*_PRESSURE`, stati della ricarica, avvisi,
+accessibilità) e i ritmi di lettura; i payload d'esempio di
+`tests/volvo_campioni.py` derivano dai suoi fixture di prova (EX30, XC40, XC90
+plug-in). Dalla documentazione pubblica di Volvo Cars vengono gli indirizzi
+delle Connected Vehicle API v2, delle Energy API v1 e v2, della Location API
+v1 e del Volvo ID. Il codice di GdAAuto (`marche/volvo/`) è scritto da capo.
+La libreria `volvocarsapi` (thomasddn) e `ha-volvo-cars`, entrambe GPL-3.0,
+sono state consultate solo per i fatti del protocollo (indirizzi, nomi dei
+campi, scope): nessun codice copiato o tradotto.
+
+```
+Copyright Home Assistant authors
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+```
+
+Modifiche: i fixture sono stati ridotti e tradotti nella forma delle prove di
+GdAAuto.
+
+## Porsche — CJNE/pyporscheconnectapi e CJNE/ha-porscheconnect, licenza MIT
+
+<https://github.com/CJNE/pyporscheconnectapi> · <https://github.com/CJNE/ha-porscheconnect>
+
+Da pyporscheconnectapi: gli indirizzi (`identity.porsche.com`,
+`api.ppa.porsche.com/app`, `/connect/v1/vehicles…`, `/commands`), il client id,
+l'X-Client-ID, lo User-Agent dell'app, l'indirizzo di ritorno, l'audience e gli
+scope, le chiavi delle misure e dei comandi, i nomi dei campi, la forma dei
+comandi e del PIN (SHA-512 di PIN e sfida). Da ha-porscheconnect: i valori
+degli stati della ricarica, l'intervallo di lettura e la forma dei dati nei
+fixture delle prove. Il codice di GdAAuto (`marche/porsche/`) è scritto da
+capo per aiohttp.
+
+```
+MIT License
+
+Copyright (c) 2020 Johan Isacsson
+Copyright (c) 2021 CJNE
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
+## Ford — marq24/ha-fordpass (Apache 2.0)
+
+<https://github.com/marq24/ha-fordpass>
+
+Da ha-fordpass (Apache License 2.0, Copyright 2025 Matthias Marquardt)
+vengono la tabella delle regioni (`marche/ford/regioni.py`: tenant OAuth,
+client id, Application-Id per continente, indirizzi del login, lingue e
+codici dei paesi), gli indirizzi delle API (login B2C,
+`cat-with-b2c-access-token`, `cat-with-refresh-token`, lo scambio OIDC su
+Autonomic, il garage, il WebSocket e il REST della telemetria, i comandi v1 e
+v1beta, energy-transfer-logs, preferred-charge-times, rcc/profile) e i nomi
+dei comandi e dei campi della telemetria. Il codice di GdAAuto
+(`marche/ford/`) è scritto da capo. Modifiche: la tabella delle regioni è
+rinominata e ridotta. itchannel/fordpass-ha, senza licenza dichiarata, è
+stato guardato solo per i nomi dei campi; nessun codice copiato.
+
+```
+Copyright 2025 Matthias Marquardt
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+```
+
 ## Tesla — la documentazione ufficiale
 
 La Fleet API è documentata da Tesla su <https://developer.tesla.com/docs/fleet-api>.
