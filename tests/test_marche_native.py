@@ -50,7 +50,7 @@ async def test_configurare_tesla_con_l_oauth(
     hass: HomeAssistant, hass_client_no_auth, aioclient_mock, current_request_with_host, credenziali
 ) -> None:
     r = await hass.config_entries.flow.async_init(DOMAIN, context={"source": config_entries.SOURCE_USER})
-    r = await hass.config_entries.flow.async_configure(r["flow_id"], {"next_step_id": "tesla"})
+    r = await hass.config_entries.flow.async_configure(r["flow_id"], {"marchio_scelto": "tesla"})
     assert r["type"] is FlowResultType.EXTERNAL_STEP
     assert r["url"].startswith(tesla.AUTORIZZA)
     assert "vehicle_device_data" in r["url"]
@@ -170,8 +170,8 @@ TOKEN_STELLANTIS = {
 
 async def test_configurare_stellantis_col_codice(hass: HomeAssistant) -> None:
     r = await hass.config_entries.flow.async_init(DOMAIN, context={"source": config_entries.SOURCE_USER})
-    r = await hass.config_entries.flow.async_configure(r["flow_id"], {"next_step_id": "stellantis"})
-    r = await hass.config_entries.flow.async_configure(r["flow_id"], {"app": "mypeugeot"})
+    # Peugeot sa già qual è la sua app: si passa subito al paese.
+    r = await hass.config_entries.flow.async_configure(r["flow_id"], {"marchio_scelto": "peugeot"})
     assert r["step_id"] == "stellantis_paese"
     r = await hass.config_entries.flow.async_configure(r["flow_id"], {"paese": "IT"})
     assert r["step_id"] == "stellantis_codice"

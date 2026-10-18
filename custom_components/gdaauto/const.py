@@ -12,6 +12,8 @@ FONTE_CLOUD = "cloud"  # GdAAuto parla col cloud della marca
 FONTE_HA = "home_assistant"  # l'auto c'è già in Home Assistant, con la sua integrazione
 
 CONF_MARCA = "marca"
+# Il marchio scelto nel catalogo (Peugeot, Kia…): la marca è il cloud che lo serve.
+CONF_MARCHIO = "marchio_catalogo"
 CONF_DISPOSITIVO = "dispositivo"
 CONF_MAPPA = "mappa"
 CONF_NOME = "nome"

@@ -3,36 +3,14 @@
     "step": {
       "user": {
         "title": "GdAAuto",
-        "description": "Where does your car come from?",
-        "menu_options": {
-          "leapmotor": "Leapmotor",
-          "tesla": "Tesla",
-          "stellantis": "Stellantis: Peugeot, Citroën, DS, Opel, Vauxhall",
-          "home_assistant": "It's already in Home Assistant (Tesla, Stellantis, Kia, BMW…)"
-        }
-      },
-      "leapmotor": {
-        "title": "Leapmotor",
-        "description": "Use a **dedicated** Leapmotor account with the car shared from your main account: the cloud keeps one session per account, and sharing it would log out the phone app.\n\nThe Leapmotor app certificate and key are not public: paste them here, or put them as `app_cert.pem` and `app_key.pem` in `{cartella}`.",
+        "description": "What make is your car? If GdAAuto can read it from its cloud it signs in there; otherwise it tells you which Home Assistant integration to use, and reads it from that.",
         "data": {
-          "email": "Leapmotor account email",
-          "password": "Password",
-          "cert_app": "App certificate (app_cert.pem)",
-          "chiave_app": "App key (app_key.pem)"
-        }
-      },
-      "reauth_confirm": {
-        "title": "Sign in to Leapmotor again",
-        "description": "The password for {email} no longer works. Enter it again; the certificate is only needed if it changed.",
-        "data": {
-          "password": "Password",
-          "cert_app": "App certificate (app_cert.pem)",
-          "chiave_app": "App key (app_key.pem)"
+          "marchio_scelto": "Make"
         }
       },
       "home_assistant": {
-        "title": "A car already in Home Assistant",
-        "description": "Pick the car's device, the one created by its integration (Tesla, Stellantis, Kia, BMW, Renault…). In the next step GdAAuto suggests the entities by itself.",
+        "title": "{marchio} from Home Assistant",
+        "description": "GdAAuto cannot read this make from its cloud yet. First install **{integrazione}** ([here]({link})), then pick the car's device: GdAAuto suggests the entities by itself.",
         "data": {
           "dispositivo": "Car device"
         }
@@ -76,7 +54,7 @@
         }
       },
       "stellantis_paese": {
-        "title": "Stellantis",
+        "title": "{marchio}",
         "description": "The account's country: it decides which site you sign in from.",
         "data": {
           "paese": "Country"
@@ -88,18 +66,43 @@
         "data": {
           "codice": "Address or code"
         }
+      },
+      "credenziali": {
+        "title": "{marchio}",
+        "description": "{nota}",
+        "data": {
+          "email": "Email",
+          "username": "Username",
+          "password": "Password",
+          "pin": "PIN",
+          "paese": "Country",
+          "regione": "Region",
+          "marchio": "Brand",
+          "client_id": "Client ID",
+          "client_secret": "Client secret",
+          "api_key": "API key",
+          "vin": "VIN",
+          "telefono": "Phone",
+          "cert_app": "App certificate (app_cert.pem)",
+          "chiave_app": "App key (app_key.pem)",
+          "codice": "Code"
+        }
+      },
+      "conferma_dispositivo": {
+        "title": "{marchio}",
+        "description": "Open [this link]({link}), sign in and confirm the code **{codice}**. Then come back here and press Submit."
       }
     },
     "error": {
-      "credenziali": "Email or password rejected by the cloud.",
-      "certificato": "The app certificate or key cannot be read, or the cloud rejects them.",
-      "certificato_mancante": "The Leapmotor app certificate and key are required.",
+      "credenziali": "Credentials rejected by the cloud.",
+      "certificato": "The certificate or key is missing, cannot be read, or is rejected by the cloud.",
       "rete": "The cloud does not respond. Try again shortly.",
       "nessuna_auto": "The account has no cars, not even shared ones.",
       "dispositivo": "The device no longer exists.",
       "gia_gdaauto": "This is already a GdAAuto device: pick the one from the car's own integration.",
       "batteria": "At least the battery is required.",
-      "codice": "The code is invalid or expired. Sign in again and paste the new one."
+      "codice": "The code is invalid or expired. Sign in again and paste the new one.",
+      "in_attesa": "Not confirmed yet: confirm the code on the website and try again."
     },
     "abort": {
       "already_configured": "This car or account is already set up.",
@@ -156,6 +159,60 @@
         "myds": "MyDS",
         "myopel": "MyOpel",
         "myvauxhall": "MyVauxhall"
+      }
+    },
+    "marchio": {
+      "options": {
+        "abarth": "Abarth",
+        "aiways": "Aiways",
+        "alfa_romeo": "Alfa Romeo",
+        "alpine": "Alpine",
+        "audi": "Audi",
+        "bmw": "BMW",
+        "byd": "BYD",
+        "citroen": "Citroën",
+        "cupra": "Cupra",
+        "dacia": "Dacia",
+        "ds": "DS",
+        "fiat": "Fiat",
+        "ford": "Ford",
+        "genesis": "Genesis",
+        "honda": "Honda",
+        "hyundai": "Hyundai",
+        "jaguar": "Jaguar",
+        "jeep": "Jeep",
+        "kia": "Kia",
+        "lancia": "Lancia",
+        "leapmotor": "Leapmotor",
+        "lexus": "Lexus",
+        "lotus": "Lotus",
+        "lucid": "Lucid",
+        "lynk_co": "Lynk & Co",
+        "maserati": "Maserati",
+        "mazda": "Mazda",
+        "mercedes": "Mercedes-Benz",
+        "mg": "MG",
+        "mini": "Mini",
+        "nio": "NIO",
+        "nissan": "Nissan",
+        "opel": "Opel",
+        "peugeot": "Peugeot",
+        "polestar": "Polestar",
+        "porsche": "Porsche",
+        "renault": "Renault",
+        "rivian": "Rivian",
+        "seat": "Seat",
+        "skoda": "Škoda",
+        "smart": "smart",
+        "subaru": "Subaru",
+        "tesla": "Tesla",
+        "toyota": "Toyota",
+        "vauxhall": "Vauxhall",
+        "volkswagen": "Volkswagen",
+        "volvo": "Volvo",
+        "xpeng": "Xpeng",
+        "zeekr": "Zeekr",
+        "altro": "Another make"
       }
     }
   },

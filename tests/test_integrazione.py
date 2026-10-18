@@ -303,9 +303,13 @@ async def test_una_tesla_diventa_un_auto_gdaauto(hass: HomeAssistant, tesla: str
 
 async def test_configurare_un_auto_che_c_e_gia(hass: HomeAssistant, tesla: str) -> None:
     r = await hass.config_entries.flow.async_init(DOMAIN, context={"source": config_entries.SOURCE_USER})
-    assert r["type"] is FlowResultType.MENU
-    assert set(r["menu_options"]) == {"leapmotor", "tesla", "stellantis", "home_assistant"}
-    r = await hass.config_entries.flow.async_configure(r["flow_id"], {"next_step_id": "home_assistant"})
+    assert r["type"] is FlowResultType.FORM
+    assert r["step_id"] == "user"
+    # Volvo non è nativa: GdAAuto dice quale integrazione installare.
+    r = await hass.config_entries.flow.async_configure(r["flow_id"], {"marchio_scelto": "volvo"})
+    assert r["step_id"] == "home_assistant"
+    assert r["description_placeholders"]["marchio"] == "Volvo"
+    assert "volvo" in r["description_placeholders"]["link"]
     r = await hass.config_entries.flow.async_configure(r["flow_id"], {CONF_DISPOSITIVO: tesla})
     assert r["step_id"] == "entita"
     assert r["description_placeholders"]["trovate"] == "9"
@@ -324,10 +328,13 @@ async def test_configurare_un_auto_che_c_e_gia(hass: HomeAssistant, tesla: str) 
 
 async def test_configurare_leapmotor(hass: HomeAssistant, cliente: FintoCliente) -> None:
     r = await hass.config_entries.flow.async_init(DOMAIN, context={"source": config_entries.SOURCE_USER})
-    r = await hass.config_entries.flow.async_configure(r["flow_id"], {"next_step_id": "leapmotor"})
+    r = await hass.config_entries.flow.async_configure(r["flow_id"], {"marchio_scelto": "leapmotor"})
+    assert r["step_id"] == "credenziali"
+    assert r["description_placeholders"]["marchio"] == "Leapmotor"
+    assert "dedicat" in r["description_placeholders"]["nota"]
     dati = {"email": "auto@esempio.it", "password": "x"}
     r = await hass.config_entries.flow.async_configure(r["flow_id"], dati)
-    assert r["errors"] == {"base": "certificato_mancante"}
+    assert r["errors"] == {"base": "certificato"}
 
     dati |= {"cert_app": "CERT", "chiave_app": "CHIAVE"}
     cliente.password_giusta = False
@@ -339,6 +346,7 @@ async def test_configurare_leapmotor(hass: HomeAssistant, cliente: FintoCliente)
     await hass.async_block_till_done()
     assert r["type"] is FlowResultType.CREATE_ENTRY
     assert r["data"][CONF_MARCA] == "leapmotor"
+    assert r["data"]["marchio_catalogo"] == "leapmotor"
     assert r["title"] == "Leapmotor · auto@esempio.it"
 
 
@@ -369,3 +377,31 @@ async def test_si_spegne_pulito(hass: HomeAssistant, cliente: FintoCliente) -> N
     assert await hass.config_entries.async_unload(voce.entry_id)
     await hass.async_block_till_done()
     assert voce.state is ConfigEntryState.NOT_LOADED
+
+
+async def test_il_reauth_di_leapmotor_chiede_solo_la_password(hass: HomeAssistant, cliente: FintoCliente) -> None:
+    cliente.password_giusta = False
+    voce = _voce_cloud()
+    voce.add_to_hass(hass)
+    await hass.config_entries.async_setup(voce.entry_id)
+    await hass.async_block_till_done()
+    (flusso,) = hass.config_entries.flow.async_progress()
+    assert flusso["step_id"] == "credenziali"
+    cliente.password_giusta = True
+    r = await hass.config_entries.flow.async_configure(flusso["flow_id"], {"password": "nuova"})
+    await hass.async_block_till_done()
+    assert r["type"] is FlowResultType.ABORT
+    assert r["reason"] == "reauth_successful"
+    assert voce.data["password"] == "nuova"
+    assert voce.data["email"] == "auto@esempio.it"
+
+
+def test_ogni_marchio_del_catalogo_ha_una_strada() -> None:
+    from custom_components.gdaauto.marche import MARCHE
+    from custom_components.gdaauto.marche.catalogo import MARCHI
+
+    for m in MARCHI:
+        # O lo legge GdAAuto (o lo leggerà), o c'è scritto cosa usare.
+        assert m.ha, m.id
+        if m.nativo in MARCHE:
+            assert MARCHE[m.nativo].ACCESSO in ("campi", "dispositivo", "oauth_ha", "codice_browser")

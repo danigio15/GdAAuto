@@ -14,10 +14,14 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
+from ..base import ACCESSO_CODICE_BROWSER, Campo
 from .cliente import APP, ID, MARCHI, NOME, ClienteStellantis, codice_da, comandi_di, indirizzo_login
 
-CAMPI: tuple[dict[str, Any], ...] = ()
+ACCESSO = ACCESSO_CODICE_BROWSER
+CAMPI: tuple[Campo, ...] = ()
 VUOLE_PIN = False
+#: Per ora si legge soltanto: nelle opzioni non c'è niente da accendere.
+SENZA_COMANDI = True
 INTERVALLO_MINUTI = 5
 
 CONF_APP = "app"
@@ -36,6 +40,7 @@ async def crea_da_voce(hass: HomeAssistant, entry: ConfigEntry, _cartella: str) 
 
 
 __all__ = [
+    "ACCESSO",
     "APP",
     "CAMPI",
     "ID",

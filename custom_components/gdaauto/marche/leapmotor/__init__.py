@@ -9,23 +9,44 @@ modello sconosciuto ripiega sul formato della C10.
 from __future__ import annotations
 
 from pathlib import Path
+import shutil
 from typing import Any
+import uuid
 
 import aiohttp
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
+from ..base import ACCESSO_CAMPI, Accesso, Campo
+from ..errori import ErroreCertificato
 from .cliente import BASE_URL, ID, NOME, ClienteLeapmotor, comandi_di
 
-# I campi che la configurazione chiede per questa marca. ``segreto`` dice se
-# si scrive nascosto, ``lungo`` se è un testo su più righe (i PEM).
-CAMPI: tuple[dict[str, Any], ...] = (
-    {"nome": "email", "obbligatorio": True},
-    {"nome": "password", "obbligatorio": True, "segreto": True},
-    {"nome": "cert_app", "obbligatorio": False, "lungo": True},
-    {"nome": "chiave_app", "obbligatorio": False, "lungo": True, "segreto": True},
+#: Chi preferisce un file al copia-incolla mette i due PEM qui, in /config.
+CARTELLA_PEM = "gdaauto"
+
+ACCESSO = ACCESSO_CAMPI
+
+CAMPI = (
+    Campo("email"),
+    Campo("password", segreto=True),
+    Campo("cert_app", obbligatorio=False, lungo=True),
+    Campo("chiave_app", obbligatorio=False, lungo=True, segreto=True),
 )
+
+NOTA = {
+    "it": (
+        "Usa un account Leapmotor **dedicato**, con l'auto condivisa dall'account principale: il cloud tiene "
+        "una sessione sola per account, e con lo stesso account l'app sul telefono verrebbe disconnessa. "
+        "Il certificato e la chiave dell'app Leapmotor non sono pubblici: incollali qui, oppure mettili come "
+        "`app_cert.pem` e `app_key.pem` in `/config/gdaauto`."
+    ),
+    "en": (
+        "Use a **dedicated** Leapmotor account with the car shared from your main account: the cloud keeps one "
+        "session per account, and sharing it would log out the phone app. The Leapmotor app certificate and key "
+        "are not public: paste them here, or put them as `app_cert.pem` and `app_key.pem` in `/config/gdaauto`."
+    ),
+}
 
 # Il PIN per i comandi: lo chiede questa marca, non tutte.
 VUOLE_PIN = True
@@ -45,19 +66,47 @@ def crea(sessione_http: aiohttp.ClientSession, dati: dict[str, Any], cartella: P
     )
 
 
+def _pem_da_file(hass: HomeAssistant, dati: dict[str, Any]) -> dict[str, Any]:
+    """Se i PEM non sono stati incollati, si cercano in /config/gdaauto."""
+    cartella = Path(hass.config.path(CARTELLA_PEM))
+    for campo, nome in (("cert_app", "app_cert.pem"), ("chiave_app", "app_key.pem")):
+        if not (dati.get(campo) or "").strip() and (cartella / nome).is_file():
+            dati[campo] = (cartella / nome).read_text()
+    return dati
+
+
+async def prova_accesso(hass: HomeAssistant, dati: dict[str, Any]) -> Accesso:
+    """Entra davvero, in una cartella di prova che poi si butta."""
+    dati = await hass.async_add_executor_job(_pem_da_file, hass, dict(dati))
+    if not (dati.get("cert_app") or "").strip() or not (dati.get("chiave_app") or "").strip():
+        raise ErroreCertificato("Servono il certificato e la chiave dell'app Leapmotor")
+    cartella = Path(hass.config.path(".storage", "gdaauto", f"prova-{uuid.uuid4().hex}"))
+    cliente = crea(async_get_clientsession(hass), dati, cartella, hass.config.language)
+    try:
+        await cliente.accedi()
+        vetture = await cliente.vetture()
+    finally:
+        await hass.async_add_executor_job(shutil.rmtree, cartella, True)
+    email = str(dati["email"]).strip()
+    return Accesso(dati=dati, vetture=vetture, unique_id=f"{ID}_{email.lower()}", titolo=f"{NOME} · {email}")
+
+
 async def crea_da_voce(hass: HomeAssistant, entry: ConfigEntry, cartella: str) -> ClienteLeapmotor:
     # La sessione di tutti va bene: il certificato si passa a ogni richiesta.
     return crea(async_get_clientsession(hass), dict(entry.data), Path(cartella), hass.config.language)
 
 
 __all__ = [
+    "ACCESSO",
     "CAMPI",
     "ID",
     "INTERVALLO_MINUTI",
     "NOME",
+    "NOTA",
     "VUOLE_PIN",
     "ClienteLeapmotor",
     "comandi_di",
     "crea",
     "crea_da_voce",
+    "prova_accesso",
 ]

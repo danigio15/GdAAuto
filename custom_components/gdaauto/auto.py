@@ -131,8 +131,9 @@ class AutoCloud(Auto):
     def __init__(self, hass: HomeAssistant, entry: ConfigEntry, conto: Conto, vettura: Vettura, modulo: Any) -> None:
         predefinito = getattr(modulo, "INTERVALLO_MINUTI", INTERVALLO_PREDEFINITO)
         self._normale = timedelta(minutes=entry.options.get(CONF_INTERVALLO, predefinito))
+        in_moto = getattr(modulo, "INTERVALLO_IN_MOTO_SECONDI", INTERVALLO_IN_MOTO_PREDEFINITO)
         self._in_moto = max(
-            timedelta(seconds=entry.options.get(CONF_INTERVALLO_IN_MOTO, INTERVALLO_IN_MOTO_PREDEFINITO)),
+            timedelta(seconds=entry.options.get(CONF_INTERVALLO_IN_MOTO, in_moto)),
             INTERVALLO_MINIMO,
         )
         super().__init__(hass, entry, vettura, self._normale)

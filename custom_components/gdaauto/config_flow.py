@@ -1,24 +1,25 @@
-"""La configurazione: da dove arriva l'auto, e come entrarci.
+"""La configurazione: quale marchio, e come entrarci.
 
-Il primo passo è un menu: una voce per ogni marca che GdAAuto sa leggere da
-sola, più «È già in Home Assistant» per tutte le altre. Ogni marca entra a
-modo suo:
+Il primo passo è l'elenco di tutti i marchi di auto elettriche
+(``marche/catalogo.py``). Se GdAAuto sa leggere quel marchio dal suo cloud,
+parte la configurazione della sua marca:
 
-- **Leapmotor**: email, password e il certificato dell'app;
-- **Tesla**: l'OAuth ufficiale, con le credenziali applicative di Home
-  Assistant (è per questo che il flusso eredita quello OAuth2);
-- **Stellantis**: l'app del marchio e il paese, poi il login nel browser e il
-  codice che il sito restituisce, incollato qui.
+- **campi** (Leapmotor e le altre): un modulo con le credenziali;
+- **dispositivo**: il login su un altro schermo, con un link e un codice;
+- **oauth_ha** (Tesla): l'OAuth di Home Assistant e le credenziali
+  applicative, ed è per questo che il flusso eredita quello OAuth2;
+- **codice_browser** (Stellantis): il login nel browser e il codice incollato.
+
+Se no, GdAAuto dice quale integrazione di Home Assistant installare, e poi
+legge l'auto da lì.
 """
 
 from __future__ import annotations
 
 from collections.abc import Mapping
 import logging
-from pathlib import Path
-import shutil
+from types import ModuleType
 from typing import Any
-import uuid
 
 from homeassistant.config_entries import SOURCE_REAUTH, ConfigEntry, ConfigFlowResult, OptionsFlow
 from homeassistant.core import callback
@@ -35,7 +36,6 @@ from . import fonte_ha as f
 from .const import (
     COMANDI_ATTIVI_PREDEFINITI,
     COMANDO_APRI,
-    COMANDO_CHIUDI,
     COMANDO_CLIMA,
     COMANDO_DESTINAZIONE,
     COMANDO_LIMITE,
@@ -48,6 +48,7 @@ from .const import (
     CONF_INTERVALLO_IN_MOTO,
     CONF_MAPPA,
     CONF_MARCA,
+    CONF_MARCHIO,
     CONF_NOME,
     CONF_PIN,
     CONF_RISPARMIO,
@@ -58,25 +59,63 @@ from .const import (
     INTERVALLO_PREDEFINITO,
 )
 from .marche import MARCHE, marca, stellantis, tesla
+from .marche.base import (
+    ACCESSO_CAMPI,
+    ACCESSO_CODICE_BROWSER,
+    ACCESSO_DISPOSITIVO,
+    ACCESSO_OAUTH_HA,
+    Accesso,
+    Campo,
+    Dispositivo,
+    InAttesa,
+)
+from .marche.catalogo import ALTRO, MARCHI, PER_ID, Marchio
 from .marche.errori import ErroreCertificato, ErroreCredenziali, ErroreMarca
 
-# Chi preferisce un file al copia-incolla mette i due PEM qui, in /config.
-CARTELLA_PEM = "gdaauto"
-FILE_CERT = "app_cert.pem"
-FILE_CHIAVE = "app_key.pem"
+CONF_SCELTA = "marchio_scelto"
 
 
-def _campo(c: dict[str, Any]) -> tuple[Any, Any]:
-    chiave = vol.Required(c["nome"]) if c.get("obbligatorio") else vol.Optional(c["nome"])
-    if c.get("lungo"):
-        sel = selector.TextSelector(selector.TextSelectorConfig(multiline=True))
-    elif c.get("segreto"):
-        sel = selector.TextSelector(selector.TextSelectorConfig(type=selector.TextSelectorType.PASSWORD))
-    elif c["nome"] == "email":
-        sel = selector.TextSelector(selector.TextSelectorConfig(type=selector.TextSelectorType.EMAIL))
-    else:
-        sel = selector.TextSelector()
-    return chiave, sel
+def _selettore(c: Campo) -> Any:
+    if c.scelte:
+        return selector.SelectSelector(
+            selector.SelectSelectorConfig(
+                options=[selector.SelectOptionDict(value=v, label=e) for v, e in c.scelte],
+                mode=selector.SelectSelectorMode.DROPDOWN,
+            )
+        )
+    if c.lungo:
+        return selector.TextSelector(selector.TextSelectorConfig(multiline=True))
+    if c.segreto:
+        return selector.TextSelector(selector.TextSelectorConfig(type=selector.TextSelectorType.PASSWORD))
+    if c.nome == "email":
+        return selector.TextSelector(selector.TextSelectorConfig(type=selector.TextSelectorType.EMAIL))
+    return selector.TextSelector()
+
+
+def _schema(campi: tuple[Campo, ...], salta: Mapping[str, Any], reauth: bool = False) -> vol.Schema:
+    schema: dict[Any, Any] = {}
+    for c in campi:
+        if c.nome in salta:
+            continue
+        # Nel reauth i segreti si riscrivono; il resto, se non cambia, resta.
+        obbligatorio = c.obbligatorio and (c.segreto or not reauth)
+        chiave = vol.Required(c.nome) if obbligatorio else vol.Optional(c.nome)
+        if c.predefinito is not None and not reauth:
+            chiave = (
+                vol.Required(c.nome, default=c.predefinito)
+                if obbligatorio
+                else vol.Optional(c.nome, default=c.predefinito)
+            )
+        schema[chiave] = _selettore(c)
+    return vol.Schema(schema)
+
+
+def _errore(err: Exception) -> str:
+    if isinstance(err, ErroreCredenziali):
+        return "credenziali"
+    if isinstance(err, ErroreCertificato):
+        return "certificato"
+    return "rete"
 
 
 class GdaautoConfigFlow(config_entry_oauth2_flow.AbstractOAuth2FlowHandler, domain=DOMAIN):
@@ -85,7 +124,9 @@ class GdaautoConfigFlow(config_entry_oauth2_flow.AbstractOAuth2FlowHandler, doma
 
     def __init__(self) -> None:
         super().__init__()
-        self._marca: str | None = None
+        self._marchio: Marchio | None = None
+        self._dati: dict[str, Any] = {}
+        self._dispositivo_login: Dispositivo | None = None
         self._dispositivo: str | None = None
         self._proposta: dict[str, Any] = {}
         self._stellantis: dict[str, str] = {}
@@ -99,111 +140,159 @@ class GdaautoConfigFlow(config_entry_oauth2_flow.AbstractOAuth2FlowHandler, doma
         """Quello che Tesla vuole nel link del login (solo Tesla usa l'OAuth di Home Assistant)."""
         return {"scope": " ".join(tesla.SCOPE), "prompt": "login"}
 
-    # --- il menu ------------------------------------------------------------
+    # --- il marchio --------------------------------------------------------------
 
-    async def async_step_user(self, _user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
-        return self.async_show_menu(step_id="user", menu_options=[*MARCHE, "home_assistant"])
+    def _modulo(self) -> ModuleType:
+        assert self._marchio is not None and self._marchio.nativo is not None
+        return MARCHE[self._marchio.nativo]
 
-    # --- una marca, dal suo cloud ----------------------------------------
+    @property
+    def _nome_marchio(self) -> str:
+        return self._marchio.nome if self._marchio else ""
 
-    async def async_step_leapmotor(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
-        return await self._passo_marca("leapmotor", user_input)
+    def _nota(self, modulo: ModuleType) -> str:
+        nota = getattr(modulo, "NOTA", {}) or {}
+        return nota.get(self.hass.config.language) or nota.get("en") or nota.get("it") or ""
 
-    def _schema_marca(self, id_marca: str) -> vol.Schema:
-        return vol.Schema(dict(_campo(c) for c in marca(id_marca).CAMPI))
+    async def async_step_user(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
+        if user_input is not None:
+            scelta = user_input[CONF_SCELTA]
+            self._marchio = PER_ID.get(scelta)
+            if self._marchio is None or self._marchio.nativo not in MARCHE:
+                return await self.async_step_home_assistant()
+            return await self._avvia_marca()
+        schema = vol.Schema(
+            {
+                vol.Required(CONF_SCELTA): selector.SelectSelector(
+                    selector.SelectSelectorConfig(
+                        options=[*PER_ID, ALTRO],
+                        translation_key="marchio",
+                        mode=selector.SelectSelectorMode.DROPDOWN,
+                        sort=False,
+                    )
+                )
+            }
+        )
+        return self.async_show_form(step_id="user", data_schema=schema)
 
-    def _pem_da_file(self, dati: dict[str, Any]) -> dict[str, Any]:
-        """Se i PEM non sono stati incollati, si cercano in /config/gdaauto."""
-        cartella = Path(self.hass.config.path(CARTELLA_PEM))
-        for campo, nome in (("cert_app", FILE_CERT), ("chiave_app", FILE_CHIAVE)):
-            if not (dati.get(campo) or "").strip() and (cartella / nome).is_file():
-                dati[campo] = (cartella / nome).read_text()
-        return dati
+    async def _avvia_marca(self) -> ConfigFlowResult:
+        modulo = self._modulo()
+        assert self._marchio is not None
+        self._dati = dict(self._marchio.preimpostati)
+        accesso = modulo.ACCESSO
+        if accesso in (ACCESSO_CAMPI, ACCESSO_DISPOSITIVO):
+            return await self.async_step_credenziali()
+        if accesso == ACCESSO_OAUTH_HA:
+            return await self.async_step_pick_implementation()
+        if accesso == ACCESSO_CODICE_BROWSER:
+            self._stellantis = {k: v for k, v in self._dati.items() if k == stellantis.CONF_APP}
+            if stellantis.CONF_APP in self._stellantis:
+                return await self.async_step_stellantis_paese()
+            return await self.async_step_stellantis()
+        raise ValueError(f"Accesso sconosciuto: {accesso}")
 
-    async def _prova(self, id_marca: str, dati: dict[str, Any]) -> tuple[dict[str, str], int]:
-        """Entra davvero e conta le auto. Torna gli errori per il modulo."""
-        cartella = self.hass.config.path(".storage", DOMAIN, f"prova-{uuid.uuid4().hex}")
-        sessione = async_get_clientsession(self.hass)
-        cliente = marca(id_marca).crea(sessione, dati, cartella, self.hass.config.language)
-        try:
-            await cliente.accedi()
-            vetture = await cliente.vetture()
-        except ErroreCredenziali:
-            return {"base": "credenziali"}, 0
-        except ErroreCertificato:
-            return {"base": "certificato"}, 0
-        except ErroreMarca:
-            return {"base": "rete"}, 0
-        finally:
-            await self.hass.async_add_executor_job(shutil.rmtree, cartella, True)
-        if not vetture:
-            return {"base": "nessuna_auto"}, 0
-        return {}, len(vetture)
+    def _crea_o_aggiorna(self, accesso: Accesso) -> ConfigFlowResult:
+        modulo = self._modulo()
+        assert self._marchio is not None
+        dati = {
+            **accesso.dati,
+            CONF_FONTE: FONTE_CLOUD,
+            CONF_MARCA: modulo.ID,
+            CONF_MARCHIO: self._marchio.id,
+        }
+        if self.source == SOURCE_REAUTH:
+            return self.async_update_reload_and_abort(self._get_reauth_entry(), data_updates=dati)
+        return self.async_create_entry(title=accesso.titolo, data=dati)
 
-    async def _passo_marca(self, id_marca: str, user_input: dict[str, Any] | None) -> ConfigFlowResult:
+    # --- le credenziali, per le marche «campi» e «dispositivo» ------------------------
+
+    async def async_step_credenziali(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
+        modulo = self._modulo()
+        reauth = self.source == SOURCE_REAUTH
         errori: dict[str, str] = {}
         if user_input is not None:
-            dati = await self.hass.async_add_executor_job(self._pem_da_file, dict(user_input))
-            if not (dati.get("cert_app") or "").strip() or not (dati.get("chiave_app") or "").strip():
-                errori["base"] = "certificato_mancante"
+            dati = {**self._dati, **{k: v for k, v in user_input.items() if v not in (None, "")}}
+            try:
+                if modulo.ACCESSO == ACCESSO_DISPOSITIVO:
+                    self._dati = dati
+                    self._dispositivo_login = await modulo.avvia_dispositivo(self.hass, dati)
+                    return await self.async_step_conferma_dispositivo()
+                accesso = await modulo.prova_accesso(self.hass, dati)
+            except ErroreMarca as err:
+                errori["base"] = _errore(err)
             else:
-                errori, _quante = await self._prova(id_marca, dati)
-            if not errori:
-                await self.async_set_unique_id(f"{id_marca}_{dati['email'].strip().lower()}")
-                self._abort_if_unique_id_configured()
-                return self.async_create_entry(
-                    title=f"{marca(id_marca).NOME} · {dati['email']}",
-                    data={**dati, CONF_FONTE: FONTE_CLOUD, CONF_MARCA: id_marca},
-                )
-        schema = self.add_suggested_values_to_schema(self._schema_marca(id_marca), user_input or {})
+                if not accesso.vetture:
+                    errori["base"] = "nessuna_auto"
+                else:
+                    return await self._fine_accesso(accesso)
+        schema = _schema(modulo.CAMPI, self._marchio.preimpostati if self._marchio else {}, reauth)
+        segreti = {c.nome for c in modulo.CAMPI if c.segreto}
+        suggeriti = user_input or {k: v for k, v in self._dati.items() if k in schema.schema and k not in segreti}
         return self.async_show_form(
-            step_id=id_marca,
-            data_schema=schema,
+            step_id="credenziali",
+            data_schema=self.add_suggested_values_to_schema(schema, suggeriti),
             errors=errori,
-            description_placeholders={"cartella": f"/config/{CARTELLA_PEM}"},
+            description_placeholders={"marchio": self._nome_marchio, "nota": self._nota(modulo)},
         )
 
+    async def _fine_accesso(self, accesso: Accesso) -> ConfigFlowResult:
+        await self.async_set_unique_id(accesso.unique_id)
+        if self.source == SOURCE_REAUTH:
+            self._abort_if_unique_id_mismatch(reason="account_diverso")
+        else:
+            self._abort_if_unique_id_configured()
+        return self._crea_o_aggiorna(accesso)
+
+    async def async_step_conferma_dispositivo(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
+        modulo = self._modulo()
+        assert self._dispositivo_login is not None
+        errori: dict[str, str] = {}
+        if user_input is not None:
+            try:
+                accesso = await modulo.completa_dispositivo(self.hass, self._dati, self._dispositivo_login)
+            except InAttesa:
+                errori["base"] = "in_attesa"
+            except ErroreMarca as err:
+                errori["base"] = _errore(err)
+            else:
+                if not accesso.vetture:
+                    errori["base"] = "nessuna_auto"
+                else:
+                    return await self._fine_accesso(accesso)
+        return self.async_show_form(
+            step_id="conferma_dispositivo",
+            errors=errori,
+            description_placeholders={
+                "marchio": self._nome_marchio,
+                "link": self._dispositivo_login.link,
+                "codice": self._dispositivo_login.codice_utente,
+            },
+        )
+
+    # --- il reauth -------------------------------------------------------------------
+
     async def async_step_reauth(self, dati: Mapping[str, Any]) -> ConfigFlowResult:
-        if dati.get(CONF_MARCA) == tesla.ID:
+        self._marchio = PER_ID.get(dati.get(CONF_MARCHIO, "")) or PER_ID.get(dati.get(CONF_MARCA, ""))
+        if self._marchio is None or self._marchio.nativo != dati.get(CONF_MARCA):
+            # Una voce di prima del catalogo: si cerca un marchio che usi quella marca.
+            self._marchio = next((m for m in MARCHI if m.nativo == dati.get(CONF_MARCA)), None)
+        if self._marchio is None:
+            return self.async_abort(reason="rete")
+        modulo = self._modulo()
+        if modulo.ACCESSO == ACCESSO_OAUTH_HA:
             return await self.async_step_reauth_tesla()
-        if dati.get(CONF_MARCA) == stellantis.ID:
+        if modulo.ACCESSO == ACCESSO_CODICE_BROWSER:
             self._stellantis = {
                 stellantis.CONF_APP: dati[stellantis.CONF_APP],
                 stellantis.CONF_PAESE: dati[stellantis.CONF_PAESE],
             }
             return await self.async_step_stellantis_codice()
-        return await self.async_step_reauth_confirm()
+        # Si tiene tutto: nel modulo i segreti non si mostrano, e quello che non
+        # si riscrive resta com'era.
+        self._dati = dict(dati)
+        return await self.async_step_credenziali()
 
-    async def async_step_reauth_confirm(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
-        voce = self._get_reauth_entry()
-        id_marca = voce.data[CONF_MARCA]
-        errori: dict[str, str] = {}
-        if user_input is not None:
-            dati = {**voce.data, **{k: v for k, v in user_input.items() if v}}
-            dati = await self.hass.async_add_executor_job(self._pem_da_file, dati)
-            errori, _ = await self._prova(id_marca, dati)
-            if not errori:
-                return self.async_update_reload_and_abort(voce, data=dati)
-        schema = vol.Schema(
-            {
-                vol.Required("password"): _campo({"nome": "password", "segreto": True})[1],
-                vol.Optional("cert_app"): _campo({"nome": "cert_app", "lungo": True})[1],
-                vol.Optional("chiave_app"): _campo({"nome": "chiave_app", "lungo": True})[1],
-            }
-        )
-        return self.async_show_form(
-            step_id="reauth_confirm",
-            data_schema=schema,
-            errors=errori,
-            description_placeholders={"email": voce.data.get("email", "")},
-        )
-
-    # --- Tesla, con l'OAuth di Home Assistant ----------------------------------
-
-    async def async_step_tesla(self, _user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
-        """Le credenziali dell'app sviluppatore le tiene Home Assistant: se non ci
-        sono ancora, è Home Assistant stesso a dire dove metterle."""
-        return await self.async_step_pick_implementation()
+    # --- Tesla, con l'OAuth di Home Assistant -------------------------------------------
 
     async def async_step_reauth_tesla(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         if user_input is None:
@@ -215,6 +304,8 @@ class GdaautoConfigFlow(config_entry_oauth2_flow.AbstractOAuth2FlowHandler, doma
         chi = tesla.dal_token(token).get("sub")
         if not chi:
             return self.async_abort(reason="oauth_error")
+        if self._marchio is None:
+            self._marchio = PER_ID["tesla"]
         await self.async_set_unique_id(f"tesla_{chi}")
         if self.source == SOURCE_REAUTH:
             self._abort_if_unique_id_mismatch(reason="account_diverso")
@@ -235,10 +326,11 @@ class GdaautoConfigFlow(config_entry_oauth2_flow.AbstractOAuth2FlowHandler, doma
             return self.async_abort(reason="nessuna_auto")
         nomi = ", ".join(v.titolo for v in vetture)
         return self.async_create_entry(
-            title=f"Tesla · {nomi}", data={**data, CONF_FONTE: FONTE_CLOUD, CONF_MARCA: tesla.ID}
+            title=f"Tesla · {nomi}",
+            data={**data, CONF_FONTE: FONTE_CLOUD, CONF_MARCA: tesla.ID, CONF_MARCHIO: "tesla"},
         )
 
-    # --- Stellantis, col codice del login incollato --------------------------------
+    # --- Stellantis, col codice del login incollato -------------------------------------
 
     async def async_step_stellantis(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         # Le chiavi delle traduzioni vanno minuscole: «mypeugeot» è MyPeugeot.
@@ -272,7 +364,9 @@ class GdaautoConfigFlow(config_entry_oauth2_flow.AbstractOAuth2FlowHandler, doma
                 )
             }
         )
-        return self.async_show_form(step_id="stellantis_paese", data_schema=schema)
+        return self.async_show_form(
+            step_id="stellantis_paese", data_schema=schema, description_placeholders={"marchio": self._nome_marchio}
+        )
 
     async def async_step_stellantis_codice(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         app = self._stellantis[stellantis.CONF_APP]
@@ -292,19 +386,19 @@ class GdaautoConfigFlow(config_entry_oauth2_flow.AbstractOAuth2FlowHandler, doma
                 if not vetture:
                     errori["base"] = "nessuna_auto"
                 else:
+                    if self._marchio is None:
+                        self._marchio = next(m for m in MARCHI if m.preimpostati.get(stellantis.CONF_APP) == app)
                     dati = {
-                        CONF_FONTE: FONTE_CLOUD,
-                        CONF_MARCA: stellantis.ID,
                         stellantis.CONF_APP: app,
                         stellantis.CONF_PAESE: paese,
                         stellantis.CONF_TOKEN: token,
                     }
-                    await self.async_set_unique_id(f"stellantis_{min(v.vin for v in vetture)}")
-                    if self.source == SOURCE_REAUTH:
-                        return self.async_update_reload_and_abort(self._get_reauth_entry(), data_updates=dati)
-                    self._abort_if_unique_id_configured()
                     titolo = f"{stellantis.MARCHI.get(app, 'Stellantis')} · {len(vetture)} auto"
-                    return self.async_create_entry(title=titolo, data=dati)
+                    accesso = Accesso(dati, vetture, f"stellantis_{min(v.vin for v in vetture)}", titolo)
+                    await self.async_set_unique_id(accesso.unique_id)
+                    if self.source != SOURCE_REAUTH:
+                        self._abort_if_unique_id_configured()
+                    return self._crea_o_aggiorna(accesso)
         schema = vol.Schema({vol.Required("codice"): selector.TextSelector()})
         return self.async_show_form(
             step_id="stellantis_codice",
@@ -313,7 +407,7 @@ class GdaautoConfigFlow(config_entry_oauth2_flow.AbstractOAuth2FlowHandler, doma
             description_placeholders={"link": stellantis.indirizzo_login(app, paese)},
         )
 
-    # --- un'auto che c'è già in Home Assistant -----------------------------
+    # --- un'auto che c'è già in Home Assistant ------------------------------------------
 
     async def async_step_home_assistant(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         errori: dict[str, str] = {}
@@ -332,7 +426,17 @@ class GdaautoConfigFlow(config_entry_oauth2_flow.AbstractOAuth2FlowHandler, doma
                 self._proposta[CONF_NOME] = voce.name_by_user or voce.name or ""
                 return await self.async_step_entita()
         schema = vol.Schema({vol.Required(CONF_DISPOSITIVO): selector.DeviceSelector()})
-        return self.async_show_form(step_id="home_assistant", data_schema=schema, errors=errori)
+        m = self._marchio
+        return self.async_show_form(
+            step_id="home_assistant",
+            data_schema=schema,
+            errors=errori,
+            description_placeholders={
+                "marchio": m.nome if m else "",
+                "integrazione": (m.ha if m and m.ha else "-"),
+                "link": (m.link if m and m.link else "https://www.home-assistant.io/integrations/"),
+            },
+        )
 
     def _dal_dispositivo(self, device_id: str) -> dict[str, Any]:
         registro = er.async_get(self.hass)
@@ -361,15 +465,15 @@ class GdaautoConfigFlow(config_entry_oauth2_flow.AbstractOAuth2FlowHandler, doma
                 errori[f.BATTERIA] = "batteria"
             else:
                 assert self._dispositivo is not None
-                return self.async_create_entry(
-                    title=user_input[CONF_NOME],
-                    data={
-                        CONF_FONTE: FONTE_HA,
-                        CONF_DISPOSITIVO: self._dispositivo,
-                        CONF_NOME: user_input[CONF_NOME],
-                        CONF_MAPPA: mappa,
-                    },
-                )
+                dati = {
+                    CONF_FONTE: FONTE_HA,
+                    CONF_DISPOSITIVO: self._dispositivo,
+                    CONF_NOME: user_input[CONF_NOME],
+                    CONF_MAPPA: mappa,
+                }
+                if self._marchio is not None:
+                    dati[CONF_MARCHIO] = self._marchio.id
+                return self.async_create_entry(title=user_input[CONF_NOME], data=dati)
         campi: dict[Any, Any] = {vol.Required(CONF_NOME): selector.TextSelector()}
         for casella in f.CASELLE:
             campi[vol.Optional(casella)] = selector.EntitySelector(
@@ -420,15 +524,14 @@ class GdaautoOptionsFlow(OptionsFlow):
                 )
                 campi[vol.Required(tesla.CONF_PROXY_VERIFICA, default=True)] = selector.BooleanSelector()
             # Una marca senza comandi (Stellantis, per ora) non ha niente da accendere.
-            comandi = modulo is not stellantis
+            comandi = not getattr(modulo, "SENZA_COMANDI", False)
             predefinito = getattr(modulo, "INTERVALLO_MINUTI", INTERVALLO_PREDEFINITO)
+            in_moto = getattr(modulo, "INTERVALLO_IN_MOTO_SECONDI", INTERVALLO_IN_MOTO_PREDEFINITO)
             campi[vol.Required(CONF_INTERVALLO, default=predefinito)] = selector.NumberSelector(
                 selector.NumberSelectorConfig(min=1, max=60, step=1, unit_of_measurement="min")
             )
-            campi[vol.Required(CONF_INTERVALLO_IN_MOTO, default=INTERVALLO_IN_MOTO_PREDEFINITO)] = (
-                selector.NumberSelector(
-                    selector.NumberSelectorConfig(min=30, max=600, step=10, unit_of_measurement="s")
-                )
+            campi[vol.Required(CONF_INTERVALLO_IN_MOTO, default=in_moto)] = selector.NumberSelector(
+                selector.NumberSelectorConfig(min=30, max=600, step=10, unit_of_measurement="s")
             )
             campi[vol.Required(CONF_RISPARMIO, default=True)] = selector.BooleanSelector()
         if comandi:
@@ -444,4 +547,4 @@ class GdaautoOptionsFlow(OptionsFlow):
         return self.async_show_form(step_id="init", data_schema=schema)
 
 
-__all__ = ["COMANDO_CHIUDI", "GdaautoConfigFlow"]
+__all__ = ["GdaautoConfigFlow"]

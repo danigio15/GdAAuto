@@ -3,36 +3,14 @@
     "step": {
       "user": {
         "title": "GdAAuto",
-        "description": "Da dove arriva la tua auto?",
-        "menu_options": {
-          "leapmotor": "Leapmotor",
-          "tesla": "Tesla",
-          "stellantis": "Stellantis: Peugeot, Citroën, DS, Opel, Vauxhall",
-          "home_assistant": "È già in Home Assistant (Tesla, Stellantis, Kia, BMW…)"
-        }
-      },
-      "leapmotor": {
-        "title": "Leapmotor",
-        "description": "Usa un account Leapmotor **dedicato**, con l'auto condivisa dall'account principale: il cloud tiene una sessione sola per account, e con lo stesso account l'app sul telefono verrebbe disconnessa.\n\nIl certificato e la chiave dell'app Leapmotor non sono pubblici: incollali qui, oppure mettili come `app_cert.pem` e `app_key.pem` in `{cartella}`.",
+        "description": "Di che marca è la tua auto? Se GdAAuto la sa leggere dal suo cloud entra da lì; se no ti dice quale integrazione di Home Assistant usare, e la legge da quella.",
         "data": {
-          "email": "Email dell'account Leapmotor",
-          "password": "Password",
-          "cert_app": "Certificato dell'app (app_cert.pem)",
-          "chiave_app": "Chiave dell'app (app_key.pem)"
-        }
-      },
-      "reauth_confirm": {
-        "title": "Rientra in Leapmotor",
-        "description": "La password di {email} non va più. Scrivila di nuovo; il certificato serve solo se è cambiato.",
-        "data": {
-          "password": "Password",
-          "cert_app": "Certificato dell'app (app_cert.pem)",
-          "chiave_app": "Chiave dell'app (app_key.pem)"
+          "marchio_scelto": "Marchio"
         }
       },
       "home_assistant": {
-        "title": "Un'auto già in Home Assistant",
-        "description": "Scegli il dispositivo dell'auto, quello creato dalla sua integrazione (Tesla, Stellantis, Kia, BMW, Renault…). Nel passo dopo GdAAuto propone da solo le entità.",
+        "title": "{marchio} da Home Assistant",
+        "description": "GdAAuto non legge ancora questa marca dal suo cloud. Installa prima **{integrazione}** ([qui]({link})), poi scegli il dispositivo dell'auto: GdAAuto propone da solo le entità.",
         "data": {
           "dispositivo": "Dispositivo dell'auto"
         }
@@ -76,7 +54,7 @@
         }
       },
       "stellantis_paese": {
-        "title": "Stellantis",
+        "title": "{marchio}",
         "description": "Il paese dell'account: decide da quale sito si entra.",
         "data": {
           "paese": "Paese"
@@ -88,18 +66,43 @@
         "data": {
           "codice": "Indirizzo o codice"
         }
+      },
+      "credenziali": {
+        "title": "{marchio}",
+        "description": "{nota}",
+        "data": {
+          "email": "Email",
+          "username": "Nome utente",
+          "password": "Password",
+          "pin": "PIN",
+          "paese": "Paese",
+          "regione": "Regione",
+          "marchio": "Marchio",
+          "client_id": "Client ID",
+          "client_secret": "Client secret",
+          "api_key": "Chiave API",
+          "vin": "VIN (numero di telaio)",
+          "telefono": "Telefono",
+          "cert_app": "Certificato dell'app (app_cert.pem)",
+          "chiave_app": "Chiave dell'app (app_key.pem)",
+          "codice": "Codice"
+        }
+      },
+      "conferma_dispositivo": {
+        "title": "{marchio}",
+        "description": "Apri [questo link]({link}), entra col tuo account e conferma il codice **{codice}**. Poi torna qui e premi Invia."
       }
     },
     "error": {
-      "credenziali": "Email o password rifiutate dal cloud.",
-      "certificato": "Il certificato o la chiave dell'app non si aprono, o il cloud li rifiuta.",
-      "certificato_mancante": "Servono il certificato e la chiave dell'app Leapmotor.",
+      "credenziali": "Credenziali rifiutate dal cloud.",
+      "certificato": "Il certificato o la chiave non si aprono, mancano, o il cloud li rifiuta.",
       "rete": "Il cloud non risponde. Riprova fra poco.",
       "nessuna_auto": "L'account non ha auto, nemmeno condivise.",
       "dispositivo": "Il dispositivo non esiste più.",
       "gia_gdaauto": "Questo è già un dispositivo GdAAuto: scegli quello dell'integrazione dell'auto.",
       "batteria": "Serve almeno la batteria.",
-      "codice": "Il codice non va, o è scaduto. Rifai il login e incolla quello nuovo."
+      "codice": "Il codice non va, o è scaduto. Rifai il login e incolla quello nuovo.",
+      "in_attesa": "Non risulta ancora confermato: conferma il codice sul sito e riprova."
     },
     "abort": {
       "already_configured": "Questa auto o questo account ci sono già.",
@@ -156,6 +159,60 @@
         "myds": "MyDS",
         "myopel": "MyOpel",
         "myvauxhall": "MyVauxhall"
+      }
+    },
+    "marchio": {
+      "options": {
+        "abarth": "Abarth",
+        "aiways": "Aiways",
+        "alfa_romeo": "Alfa Romeo",
+        "alpine": "Alpine",
+        "audi": "Audi",
+        "bmw": "BMW",
+        "byd": "BYD",
+        "citroen": "Citroën",
+        "cupra": "Cupra",
+        "dacia": "Dacia",
+        "ds": "DS",
+        "fiat": "Fiat",
+        "ford": "Ford",
+        "genesis": "Genesis",
+        "honda": "Honda",
+        "hyundai": "Hyundai",
+        "jaguar": "Jaguar",
+        "jeep": "Jeep",
+        "kia": "Kia",
+        "lancia": "Lancia",
+        "leapmotor": "Leapmotor",
+        "lexus": "Lexus",
+        "lotus": "Lotus",
+        "lucid": "Lucid",
+        "lynk_co": "Lynk & Co",
+        "maserati": "Maserati",
+        "mazda": "Mazda",
+        "mercedes": "Mercedes-Benz",
+        "mg": "MG",
+        "mini": "Mini",
+        "nio": "NIO",
+        "nissan": "Nissan",
+        "opel": "Opel",
+        "peugeot": "Peugeot",
+        "polestar": "Polestar",
+        "porsche": "Porsche",
+        "renault": "Renault",
+        "rivian": "Rivian",
+        "seat": "Seat",
+        "skoda": "Škoda",
+        "smart": "smart",
+        "subaru": "Subaru",
+        "tesla": "Tesla",
+        "toyota": "Toyota",
+        "vauxhall": "Vauxhall",
+        "volkswagen": "Volkswagen",
+        "volvo": "Volvo",
+        "xpeng": "Xpeng",
+        "zeekr": "Zeekr",
+        "altro": "Un'altra marca"
       }
     }
   },

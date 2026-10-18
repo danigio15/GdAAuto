@@ -17,12 +17,16 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers import config_entry_oauth2_flow
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
+from ..base import ACCESSO_OAUTH_HA, Campo
 from .cliente import ID, NOME, SERVER, ClienteTesla, comandi_di
 
-CAMPI: tuple[dict[str, Any], ...] = ()
+ACCESSO = ACCESSO_OAUTH_HA
+CAMPI: tuple[Campo, ...] = ()
 VUOLE_PIN = False
 #: Ogni lettura costa a chi ha l'app sviluppatore: si legge meno spesso.
 INTERVALLO_MINUTI = 10
+#: Anche in marcia e in carica, con calma: ogni lettura si paga.
+INTERVALLO_IN_MOTO_SECONDI = 120
 
 CONF_PROXY = "proxy"
 CONF_PROXY_VERIFICA = "proxy_verifica"
@@ -65,4 +69,14 @@ async def crea_da_voce(hass: HomeAssistant, entry: ConfigEntry, _cartella: str) 
     )
 
 
-__all__ = ["CAMPI", "ID", "INTERVALLO_MINUTI", "NOME", "VUOLE_PIN", "ClienteTesla", "comandi_di", "crea_da_voce"]
+__all__ = [
+    "ACCESSO",
+    "CAMPI",
+    "ID",
+    "INTERVALLO_MINUTI",
+    "NOME",
+    "VUOLE_PIN",
+    "ClienteTesla",
+    "comandi_di",
+    "crea_da_voce",
+]
