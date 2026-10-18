@@ -347,6 +347,9 @@
       },
       "ultima_ricarica_fine": {
         "name": "Fine dell'ultima ricarica"
+      },
+      "capacita_batteria": {
+        "name": "Capacità della batteria"
       }
     },
     "binary_sensor": {

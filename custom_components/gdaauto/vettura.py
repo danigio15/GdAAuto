@@ -55,6 +55,8 @@ class StatoVettura:
     corrente_a: float | None = None
     tempo_ricarica_min: int | None = None
     energia_residua_kwh: float | None = None
+    #: la capacità utile, quando la marca la dice; se no si ricava (vedi ``capacita_kwh``)
+    capacita_batteria_kwh: float | None = None
     temperatura_batteria_c: float | None = None
     temperatura_interna_c: float | None = None
     temperatura_esterna_c: float | None = None
@@ -128,6 +130,20 @@ class StatoVettura:
         if self.stato_ricarica is None:
             return None
         return self.stato_ricarica == StatoRicarica.IN_CARICA and not self.in_marcia
+
+    @property
+    def capacita_kwh(self) -> float | None:
+        """La capacità utile: quella della marca, o energia residua ÷ carica.
+
+        Sotto il 10 % l'errore di arrotondamento della percentuale pesa troppo,
+        e un risultato fuori da 10-250 kWh non è una batteria d'auto.
+        """
+        if self.capacita_batteria_kwh is not None:
+            return self.capacita_batteria_kwh
+        if self.energia_residua_kwh is None or self.batteria is None or self.batteria < 10:
+            return None
+        capacita = round(self.energia_residua_kwh / self.batteria * 100, 1)
+        return capacita if 10 <= capacita <= 250 else None
 
     @property
     def potenza_batteria_kw(self) -> float | None:

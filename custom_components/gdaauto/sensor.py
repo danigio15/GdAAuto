@@ -110,6 +110,15 @@ DESCRIZIONI: tuple[Descrizione, ...] = (
         valore=lambda s: s.energia_residua_kwh,
     ),
     Descrizione(
+        key="capacita_batteria",
+        device_class=SensorDeviceClass.ENERGY_STORAGE,
+        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+        state_class=SensorStateClass.MEASUREMENT,
+        suggested_display_precision=1,
+        entity_category=EntityCategory.DIAGNOSTIC,
+        valore=lambda s: s.capacita_kwh,
+    ),
+    Descrizione(
         key="stato_ricarica",
         device_class=SensorDeviceClass.ENUM,
         options=[r.nome for r in StatoRicarica],

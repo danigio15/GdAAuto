@@ -47,7 +47,8 @@ DESCRIZIONI: tuple[Descrizione, ...] = (
         key="pneumatici_allarme", device_class=BinarySensorDeviceClass.PROBLEM, valore=lambda s: s.pneumatici_allarme
     ),
     Descrizione(key="freno_stazionamento", valore=lambda s: s.freno_stazionamento),
-    Descrizione(key="antifurto", device_class=BinarySensorDeviceClass.SAFETY, valore=lambda s: s.antifurto),
+    # Niente classe «safety»: per Home Assistant acceso vorrebbe dire «non sicuro», e qui è l'antifurto inserito.
+    Descrizione(key="antifurto", valore=lambda s: s.antifurto),
     Descrizione(key="sbrinamento", valore=lambda s: s.sbrinamento),
     # La serratura come sola lettura, quando non si può comandare (niente
     # PIN, o la marca non lo permette). Per Home Assistant «on» è aperta.

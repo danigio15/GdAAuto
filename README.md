@@ -241,6 +241,14 @@ in due righe cosa preparare. Le cose da sapere prima:
   temperatura della batteria e posizione. In viaggio, quando gdanav chiede
   dati freschi, GdAAuto rilegge l'auto.
 
+## Gli stessi dati in GdAAuto, gdanav e GdAHome
+
+Ogni dato ha un nome solo nelle tre: l'elenco, con le unità e la casella
+di GdAHome e il campo di gdanav per ciascuno, è in
+[docs/DATI-AUTO.md](docs/DATI-AUTO.md). gdanav e GdAHome riconoscono le
+entità di GdAAuto dalla chiave, non dal nome, quindi non si confondono
+l'autonomia con quella di omologazione o il consumo con l'ultimo viaggio.
+
 ## Installare
 
 1. **HACS** → i tre puntini → **Repository personalizzati**: incolla
