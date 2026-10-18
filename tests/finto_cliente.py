@@ -34,7 +34,14 @@ class FintoCliente:
         if isinstance(dati.get("signal"), dict):
             # Come il cloud vero quando l'auto è sveglia: l'ultimo dato è di adesso.
             dati["signal"] = {**dati["signal"], "sts": int(time.time() * 1000)}
-        return interpreta(dati)
+        stato = interpreta(dati)
+        if isinstance(dati.get("signal"), dict):
+            # Lo storico che il cliente vero legge ogni mezz'ora: c'è, così le sorelle lo vedono.
+            stato.consumo_medio_kwh_100km = 15.8
+            stato.energia_oggi_guida_kwh, stato.energia_oggi_clima_kwh, stato.energia_oggi_altro_kwh = 3.2, 0.8, 0.1
+            stato.km_7_giorni, stato.energia_7_giorni_kwh = 60.5, 10.0
+            stato.ultima_ricarica_kwh, stato.ultima_ricarica_tipo = 31.0, "dc"
+        return stato
 
     async def verifica_pin(self, v: Vettura, pin: str) -> None:
         self.chiamate.append(("verifica_pin", (v.vin,)))

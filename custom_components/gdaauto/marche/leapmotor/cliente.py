@@ -16,6 +16,7 @@ import asyncio
 import base64
 import contextlib
 from dataclasses import dataclass
+from datetime import UTC, datetime, timedelta, tzinfo
 import json
 import logging
 import os
@@ -38,8 +39,8 @@ _LOGGER = logging.getLogger(__name__)
 
 BASE_URL = "https://appgateway.leapmotor-international.de"
 _PREFISSO = "/carownerservice/oversea"
-#: Il consumo medio cambia piano: basta rileggerlo ogni mezz'ora.
-_CONSUMO_OGNI_S = 1800
+#: Consumi, energia di oggi, ricariche: cambiano piano, basta rileggerli ogni mezz'ora.
+_STORICO_OGNI_S = 1800
 _TIMEOUT = aiohttp.ClientTimeout(total=30)
 
 # Il modello nel segmento dell'indirizzo dello stato. Le B usano quello della
@@ -141,6 +142,26 @@ class Sessione:
     cert_sincronizzato: bool = False
 
 
+def _kwh(v: Any) -> float | None:
+    """Un numero che il cloud manda come stringa, numero o vuoto."""
+    if v is None or v == "" or isinstance(v, bool):
+        return None
+    try:
+        return float(v)
+    except (TypeError, ValueError):
+        return None
+
+
+def _da_ms(v: Any) -> datetime | None:
+    n = _kwh(v)
+    if not n:
+        return None
+    try:
+        return datetime.fromtimestamp(n / 1000, UTC)
+    except (OverflowError, OSError, ValueError):
+        return None
+
+
 def _forma(corpo: dict[str, str]) -> str:
     return "&".join(f"{k}={quote(v, safe='')}" for k, v in corpo.items())
 
@@ -158,8 +179,11 @@ class ClienteLeapmotor:
         lingua: str = "it-IT",
         base_url: str = BASE_URL,
         device_id: str = cripto.DEVICE_ID_PREDEFINITO,
+        fuso: tzinfo = UTC,
     ) -> None:
         self._http = sessione_http
+        #: il fuso di casa: «oggi» comincia alla mezzanotte di chi guarda
+        self._fuso = fuso
         self.email = email
         self.password = password
         self.lingua = lingua
@@ -172,8 +196,8 @@ class ClienteLeapmotor:
         self._ssl_account: ssl.SSLContext | None = None
         self.sessione: Sessione | None = None
         self._percorsi_provati: dict[str, str] = {}
-        #: VIN → (consumo medio, quando si è letto)
-        self._consumi: dict[str, tuple[float | None, float]] = {}
+        #: VIN → (i campi dello storico, quando si sono letti)
+        self._storici: dict[str, tuple[dict[str, Any], float]] = {}
         self._serratura = asyncio.Lock()
 
     # --- i certificati --------------------------------------------------
@@ -240,8 +264,9 @@ class ClienteLeapmotor:
         intestazioni: dict[str, str],
         corpo: str,
         ssl_: ssl.SSLContext,
+        prefisso: str = _PREFISSO,
     ) -> dict[str, Any]:
-        url = f"{self.base_url}{_PREFISSO}{percorso}"
+        url = f"{self.base_url}{prefisso}{percorso}"
         try:
             async with self._http.post(url, data=corpo, headers=intestazioni, ssl=ssl_, timeout=_TIMEOUT) as r:
                 testo = await r.text()
@@ -434,45 +459,127 @@ class ClienteLeapmotor:
                 if _ha_segnali(r2.get("data") or {}):
                     d = r2["data"]
             stato = interpreta(d)
-            stato.consumo_medio_kwh_100km = await self._consumo_medio(vettura)
+            for campo, valore in (await self._storico(vettura)).items():
+                setattr(stato, campo, valore)
             return stato
 
         return await self._con_sessione(leggi)
 
-    async def _consumo_medio(self, vettura: Vettura) -> float | None:
-        """Il consumo medio delle ultime sei settimane (kWh/100 km), riletto ogni mezz'ora.
+    async def _storico(self, vettura: Vettura) -> dict[str, Any]:
+        """Quello che cambia piano (consumi, energia di oggi, ultima ricarica), riletto ogni mezz'ora.
 
-        È un di più: se il cloud non lo dà, lo stato arriva lo stesso.
+        Sono quattro letture in più, e tutte facoltative: se una non va, lo
+        stato arriva lo stesso e quel dato resta quello di prima.
         """
-        valore, quando = self._consumi.get(vettura.vin, (None, 0.0))
-        if time.monotonic() - quando < _CONSUMO_OGNI_S and quando:
-            return valore
-        try:
-            r = await self._posta(
-                "consumo medio",
-                "/drivingRecord/v1/getLastNweeks100kmECAndRank",
-                intestazioni=self._firmate(parametri={"carvin": vettura.vin}),
-                corpo=_forma({"carvin": vettura.vin}),
-                ssl_=self._ssl_account,  # type: ignore[arg-type]
-            )
-        except ErroreApi as err:
-            if err.token_scaduto:
-                raise
-            _LOGGER.debug("Consumo medio della %s non letto: %s", vettura.modello, err)
-            nuovo = None
-        except ErroreRete as err:
-            _LOGGER.debug("Consumo medio della %s non letto: %s", vettura.modello, err)
-            return valore
-        else:
-            classifica = (r.get("data") or {}).get("rankResult") if isinstance(r.get("data"), dict) else None
+        campi, quando = self._storici.get(vettura.vin, ({}, 0.0))
+        if quando and time.monotonic() - quando < _STORICO_OGNI_S:
+            return campi
+        campi = dict(campi)
+        for leggi in (self._consumo_medio, self._energia_di_oggi, self._ultimi_7_giorni, self._ultima_ricarica):
             try:
-                nuovo = float(classifica["hundredKmEC"]) if isinstance(classifica, dict) else None
-            except (KeyError, TypeError, ValueError):
-                nuovo = None
-            if nuovo is not None and not 0 < nuovo < 100:
-                nuovo = None
-        self._consumi[vettura.vin] = (nuovo, time.monotonic())
-        return nuovo
+                campi.update(await leggi(vettura))
+            except ErroreApi as err:
+                if err.token_scaduto:
+                    raise
+                _LOGGER.debug("%s della %s non letto: %s", leggi.__name__, vettura.modello, err)
+            except (ErroreRete, KeyError, TypeError, ValueError) as err:
+                _LOGGER.debug("%s della %s non letto: %s", leggi.__name__, vettura.modello, err)
+        self._storici[vettura.vin] = (campi, time.monotonic())
+        return campi
+
+    async def _consumo_medio(self, vettura: Vettura) -> dict[str, Any]:
+        """Il consumo medio delle ultime sei settimane, in kWh/100 km."""
+        r = await self._posta(
+            "consumo medio",
+            "/drivingRecord/v1/getLastNweeks100kmECAndRank",
+            intestazioni=self._firmate(parametri={"carvin": vettura.vin}),
+            corpo=_forma({"carvin": vettura.vin}),
+            ssl_=self._ssl_account,  # type: ignore[arg-type]
+        )
+        valore = _kwh((r.get("data") or {}).get("rankResult", {}).get("hundredKmEC"))
+        return {"consumo_medio_kwh_100km": valore if valore and 0 < valore < 100 else None}
+
+    async def _energia_di_oggi(self, vettura: Vettura) -> dict[str, Any]:
+        """L'energia da mezzanotte: per la guida, per il clima, per il resto."""
+        adesso = datetime.now(self._fuso)
+        inizio = adesso.replace(hour=0, minute=0, second=0, microsecond=0)
+        parametri = {
+            "begintime": str(int(inizio.timestamp())),
+            "endtime": str(int(adesso.timestamp())),
+            "carvin": vettura.vin,
+        }
+        r = await self._posta(
+            "energia di oggi",
+            "/drivingRecord/v1/getLastweekEC",
+            intestazioni=self._firmate(parametri=parametri),
+            corpo=_forma(parametri),
+            ssl_=self._ssl_account,  # type: ignore[arg-type]
+        )
+        d = r.get("data") or {}
+        return {
+            "energia_oggi_guida_kwh": _kwh(d.get("driverEC")),
+            "energia_oggi_clima_kwh": _kwh(d.get("acEC")),
+            "energia_oggi_altro_kwh": _kwh(d.get("otherEC")),
+        }
+
+    async def _ultimi_7_giorni(self, vettura: Vettura) -> dict[str, Any]:
+        """Km ed energia di guida degli ultimi sette giorni (oggi compreso)."""
+        oggi = datetime.now(self._fuso).replace(hour=0, minute=0, second=0, microsecond=0)
+        inizio, fine = oggi - timedelta(days=6), oggi + timedelta(days=1) - timedelta(seconds=1)
+        parametri = {
+            "begintime": str(int(inizio.timestamp() * 1000)),
+            "endtime": str(int(fine.timestamp() * 1000)),
+        }
+        r = await self._posta(
+            "ultimi sette giorni",
+            "/drivingRecord/v1/mileage/energy/detail",
+            intestazioni=self._firmate(vin=vettura.vin, parametri=parametri),
+            corpo=_forma({**parametri, "vin": vettura.vin}),
+            ssl_=self._ssl_account,  # type: ignore[arg-type]
+        )
+        giorni = [g for g in (r.get("data") or {}).get("detail") or [] if isinstance(g, dict)]
+        if not giorni:
+            return {}
+        km = sum(_kwh(g.get("accumulatedMileage")) or 0.0 for g in giorni)
+        energia = sum(_kwh(g.get("accumulatedEnergyConsume")) or 0.0 for g in giorni)
+        if _percorso_stato(vettura) == "t03":
+            # La T03 la dà in Wh, le altre in kWh.
+            energia /= 1000
+        return {"km_7_giorni": round(km, 1), "energia_7_giorni_kwh": round(energia, 2)}
+
+    async def _ultima_ricarica(self, vettura: Vettura) -> dict[str, Any]:
+        """L'ultima ricarica della settimana: energia, AC o DC, inizio e fine."""
+        oggi = datetime.now(UTC).date()
+        parametri = {
+            "vin": vettura.vin,
+            "timeZone": "GMT+00:00",
+            "startTime": (oggi - timedelta(days=7)).isoformat(),
+            "endTime": oggi.isoformat(),
+            "pageNum": "1",
+            "pageSize": "10",
+        }
+        intestazioni = self._firmate(parametri=parametri)
+        intestazioni["Content-Type"] = "application/json"
+        corpo = json.dumps({**parametri, "pageNum": 1, "pageSize": 10}, separators=(",", ":"))
+        r = await self._posta(
+            "ultima ricarica",
+            "/charge/daily/detail/page",
+            intestazioni=intestazioni,
+            corpo=corpo,
+            ssl_=self._ssl_account,  # type: ignore[arg-type]
+            prefisso="/carownerservice",
+        )
+        sessioni = [x for x in (r.get("data") or {}).get("list") or [] if isinstance(x, dict)]
+        if not sessioni:
+            return {}
+        ultima = max(sessioni, key=lambda x: _kwh(x.get("chargeGunStartTs")) or 0)
+        tipo = str(ultima.get("chargeType") or "")
+        return {
+            "ultima_ricarica_kwh": _kwh(ultima.get("chargeInEnergy")),
+            "ultima_ricarica_tipo": {"1": "ac", "2": "dc", "SLOW": "ac", "FAST": "dc"}.get(tipo),
+            "ultima_ricarica_inizio": _da_ms(ultima.get("chargeGunStartTs")),
+            "ultima_ricarica_fine": _da_ms(ultima.get("chargeGunEndTs")),
+        }
 
     async def _stato_grezzo(self, vettura: Vettura, percorso: str, car_id: str | None = None) -> dict[str, Any]:
         corpo = {"vin": vettura.vin}

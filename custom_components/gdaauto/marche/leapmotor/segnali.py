@@ -71,6 +71,7 @@ SEGNALI: dict[str, str] = {
     "3259": "expectedFuelMileage",
     "3261": "expectedCombinedMileage",
     "1186": "batteryThermalRequest",
+    "1348": "ptcPower",
     "1480": "parkingBrakeState",
     "1945": "windshieldDefrost",
 }
@@ -285,6 +286,7 @@ def interpreta(dati: dict[str, Any]) -> StatoVettura:
     s.freno_stazionamento = _acceso(d.get("parkingBrakeState"))
     termico = _intero(d.get("batteryThermalRequest"))
     s.batteria_in_riscaldamento = termico == 4 if termico is not None else None
+    s.potenza_riscaldatore_w = _numero(d.get("ptcPower"))
 
     in_moto = bool(s.velocita_kmh and s.velocita_kmh > 2) or s.marcia in (Marcia.AVANTI, Marcia.RETROMARCIA)
     _ricarica(d, s, in_moto)

@@ -98,6 +98,20 @@ class StatoVettura:
     ricarica_programmata: bool | None = None
     ricarica_ora_inizio: str | None = None
     ricarica_ora_fine: str | None = None
+    #: la potenza del riscaldatore (abitacolo e batteria), in W
+    potenza_riscaldatore_w: float | None = None
+    #: l'energia di oggi, divisa per dove è andata: guida, clima, il resto
+    energia_oggi_guida_kwh: float | None = None
+    energia_oggi_clima_kwh: float | None = None
+    energia_oggi_altro_kwh: float | None = None
+    #: gli ultimi sette giorni: km fatti ed energia usata per farli
+    km_7_giorni: float | None = None
+    energia_7_giorni_kwh: float | None = None
+    #: l'ultima ricarica: quanta energia, AC o DC, quando
+    ultima_ricarica_kwh: float | None = None
+    ultima_ricarica_tipo: str | None = None
+    ultima_ricarica_inizio: datetime | None = None
+    ultima_ricarica_fine: datetime | None = None
     grezzo: dict[str, Any] = field(default_factory=dict)
 
     # --- quello che si ricava --------------------------------------------

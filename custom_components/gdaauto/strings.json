@@ -313,6 +313,40 @@
       },
       "ricarica_fine": {
         "name": "Scheduled charge end"
+      },
+      "potenza_riscaldatore": {
+        "name": "Heater power"
+      },
+      "energia_oggi_guida": {
+        "name": "Energy today for driving"
+      },
+      "energia_oggi_clima": {
+        "name": "Energy today for climate"
+      },
+      "energia_oggi_altro": {
+        "name": "Energy today for other uses"
+      },
+      "km_7_giorni": {
+        "name": "Distance last 7 days"
+      },
+      "energia_7_giorni": {
+        "name": "Energy last 7 days"
+      },
+      "ultima_ricarica_energia": {
+        "name": "Last charge energy"
+      },
+      "ultima_ricarica_tipo": {
+        "name": "Last charge type",
+        "state": {
+          "ac": "AC",
+          "dc": "DC"
+        }
+      },
+      "ultima_ricarica_inizio": {
+        "name": "Last charge start"
+      },
+      "ultima_ricarica_fine": {
+        "name": "Last charge end"
       }
     },
     "binary_sensor": {

@@ -19,7 +19,11 @@ Da qui vengono, riscritti in `custom_components/gdaauto/marche/leapmotor/cripto.
   l'ordine delle gomme, la marcia (1 retromarcia, 3 avanti), i dati vecchi di
   più di 15 minuti come auto addormentata, e i segnali di autonomia di
   omologazione, ricarica rapida, riscaldamento della batteria, freno di
-  stazionamento, sbrinamento, allarme gomme e range extender.
+  stazionamento, sbrinamento, allarme gomme e range extender;
+- gli indirizzi e le firme dello storico: l'energia di oggi per guida, clima
+  e resto, i km e l'energia degli ultimi sette giorni, le sessioni di
+  ricarica (fuori da `/oversea`, col corpo in JSON), e la potenza del
+  riscaldatore (1348).
 
 La licenza MIT chiede che il suo avviso accompagni il codice:
 

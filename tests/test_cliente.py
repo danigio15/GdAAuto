@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import AsyncGenerator
+from datetime import UTC, datetime
 import json
 from pathlib import Path
 
@@ -229,3 +230,35 @@ async def test_senza_consumo_lo_stato_arriva_lo_stesso(cloud, tmp_path: Path) ->
         st = await c.stato(b10)
     assert st.batteria == 65
     assert st.consumo_medio_kwh_100km is None
+
+
+async def test_lo_storico_energia_di_oggi_settimana_e_ultima_ricarica(cloud, tmp_path: Path) -> None:
+    finto, url = cloud
+    async with aiohttp.ClientSession() as s:
+        c = _cliente(finto, url, s, tmp_path)
+        t03, b10 = await c.vetture()
+        st = await c.stato(b10)
+        st_t03 = await c.stato(t03)
+    assert (st.energia_oggi_guida_kwh, st.energia_oggi_clima_kwh, st.energia_oggi_altro_kwh) == (3.2, 0.8, 0.1)
+    assert (st.km_7_giorni, st.energia_7_giorni_kwh) == (60.5, 10.0)
+    # La T03 conta l'energia in Wh.
+    assert st_t03.energia_7_giorni_kwh == 0.01
+    # L'ultima è la più recente, in DC.
+    assert (st.ultima_ricarica_kwh, st.ultima_ricarica_tipo) == (31.0, "dc")
+    assert st.ultima_ricarica_inizio == datetime.fromtimestamp(1760800000, UTC)
+    assert st.ultima_ricarica_fine == datetime.fromtimestamp(1760802000, UTC)
+    assert "charge/daily/detail/page" in finto.chiamate
+
+
+async def test_lo_storico_che_non_va_non_ferma_lo_stato(cloud, tmp_path: Path) -> None:
+    finto, url = cloud
+    finto.ricariche = [{"chargeGunStartTs": "x"}]
+    finto.giorni = []
+    finto.energia_oggi = {}
+    async with aiohttp.ClientSession() as s:
+        c = _cliente(finto, url, s, tmp_path)
+        _t03, b10 = await c.vetture()
+        st = await c.stato(b10)
+    assert st.batteria == 65
+    assert st.km_7_giorni is None and st.energia_oggi_guida_kwh is None
+    assert st.ultima_ricarica_tipo is None

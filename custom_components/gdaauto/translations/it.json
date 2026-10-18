@@ -313,6 +313,40 @@
       },
       "ricarica_fine": {
         "name": "Fine ricarica programmata"
+      },
+      "potenza_riscaldatore": {
+        "name": "Potenza riscaldatore"
+      },
+      "energia_oggi_guida": {
+        "name": "Energia di oggi per la guida"
+      },
+      "energia_oggi_clima": {
+        "name": "Energia di oggi per il clima"
+      },
+      "energia_oggi_altro": {
+        "name": "Energia di oggi per il resto"
+      },
+      "km_7_giorni": {
+        "name": "Km degli ultimi 7 giorni"
+      },
+      "energia_7_giorni": {
+        "name": "Energia degli ultimi 7 giorni"
+      },
+      "ultima_ricarica_energia": {
+        "name": "Energia dell'ultima ricarica"
+      },
+      "ultima_ricarica_tipo": {
+        "name": "Tipo dell'ultima ricarica",
+        "state": {
+          "ac": "AC",
+          "dc": "DC"
+        }
+      },
+      "ultima_ricarica_inizio": {
+        "name": "Inizio dell'ultima ricarica"
+      },
+      "ultima_ricarica_fine": {
+        "name": "Fine dell'ultima ricarica"
       }
     },
     "binary_sensor": {

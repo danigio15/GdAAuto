@@ -83,6 +83,29 @@ class FintoCloud:
     #: il consumo medio delle ultime settimane (kWh/100 km, come stringa); None: il cloud non lo dà
     consumo: str | None = "15.8"
     letture_consumo: int = 0
+    energia_oggi: dict[str, Any] = field(default_factory=lambda: {"driverEC": "3.2", "acEC": "0.8", "otherEC": "0.1"})
+    giorni: list[dict[str, Any]] = field(
+        default_factory=lambda: [
+            {"day": "2026-10-17", "accumulatedMileage": 42.5, "accumulatedEnergyConsume": 7},
+            {"day": "2026-10-18", "accumulatedMileage": 18, "accumulatedEnergyConsume": "3"},
+        ]
+    )
+    ricariche: list[dict[str, Any]] = field(
+        default_factory=lambda: [
+            {
+                "chargeGunStartTs": 1760700000000,
+                "chargeGunEndTs": 1760710000000,
+                "chargeType": "1",
+                "chargeInEnergy": "22.4",
+            },
+            {
+                "chargeGunStartTs": 1760800000000,
+                "chargeGunEndTs": 1760802000000,
+                "chargeType": "2",
+                "chargeInEnergy": 31.0,
+            },
+        ]
+    )
 
     def __post_init__(self) -> None:
         self.cert_app, self.chiave_app, *_ = certificato("app")
@@ -110,7 +133,18 @@ class FintoCloud:
     def app(self) -> web.Application:
         app = web.Application()
         app.router.add_post("/carownerservice/oversea/{resto:.*}", self._gestisci)
+        app.router.add_post("/carownerservice/charge/daily/detail/page", self._ricariche)
         return app
+
+    async def _ricariche(self, r: web.Request) -> web.Response:
+        """L'unica lettura fuori da /oversea, e col corpo in JSON."""
+        self.chiamate.append("charge/daily/detail/page")
+        assert r.headers["Content-Type"] == "application/json"
+        corpo = json.loads(await r.text())
+        self._firma_standard(r.headers, {k: str(v) for k, v in corpo.items()})
+        if r.headers.get("token") != self.token:
+            return self._risposta(code=401, message="token invalid")
+        return self._risposta({"list": self.ricariche, "total": len(self.ricariche)})
 
     @staticmethod
     def _risposta(data: Any = None, code: int = 0, message: str = "ok", http: int = 200) -> web.Response:
@@ -166,6 +200,16 @@ class FintoCloud:
             if self.consumo is None:
                 return self._risposta(code=1, message="no data")
             return self._risposta({"rankResult": {"hundredKmEC": self.consumo, "rank": "40%"}, "weeklyEC": []})
+
+        if resto == "drivingRecord/v1/getLastweekEC":
+            self._firma_standard(h, {k: corpo[k] for k in ("begintime", "endtime", "carvin")})
+            assert int(corpo["endtime"]) - int(corpo["begintime"]) <= 86400  # da mezzanotte, in secondi
+            return self._risposta(self.energia_oggi)
+
+        if resto == "drivingRecord/v1/mileage/energy/detail":
+            self._firma_standard(h, {k: corpo[k] for k in ("begintime", "endtime", "vin")})
+            assert int(corpo["endtime"]) - int(corpo["begintime"]) > 6 * 86400 * 1000  # sette giorni, in ms
+            return self._risposta({"totalmileage": 3030, "detail": self.giorni})
 
         if resto == "vehicle/v1/cert/sync":
             self._firma_standard(h, {})

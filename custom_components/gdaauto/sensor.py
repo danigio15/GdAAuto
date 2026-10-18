@@ -182,6 +182,69 @@ DESCRIZIONI: tuple[Descrizione, ...] = (
         valore=lambda s: s.consumo_medio_kwh_100km,
     ),
     Descrizione(
+        key="potenza_riscaldatore",
+        device_class=SensorDeviceClass.POWER,
+        native_unit_of_measurement=UnitOfPower.WATT,
+        state_class=SensorStateClass.MEASUREMENT,
+        suggested_display_precision=0,
+        valore=lambda s: s.potenza_riscaldatore_w,
+    ),
+    *(
+        Descrizione(
+            key=f"energia_oggi_{dove}",
+            device_class=SensorDeviceClass.ENERGY,
+            native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+            state_class=SensorStateClass.TOTAL,
+            suggested_display_precision=1,
+            valore=lambda s, c=campo: getattr(s, c),
+        )
+        for dove, campo in (
+            ("guida", "energia_oggi_guida_kwh"),
+            ("clima", "energia_oggi_clima_kwh"),
+            ("altro", "energia_oggi_altro_kwh"),
+        )
+    ),
+    Descrizione(
+        key="km_7_giorni",
+        device_class=SensorDeviceClass.DISTANCE,
+        native_unit_of_measurement=UnitOfLength.KILOMETERS,
+        state_class=SensorStateClass.MEASUREMENT,
+        suggested_display_precision=0,
+        valore=lambda s: s.km_7_giorni,
+    ),
+    Descrizione(
+        key="energia_7_giorni",
+        device_class=SensorDeviceClass.ENERGY,
+        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+        state_class=SensorStateClass.TOTAL,
+        suggested_display_precision=1,
+        valore=lambda s: s.energia_7_giorni_kwh,
+    ),
+    Descrizione(
+        key="ultima_ricarica_energia",
+        device_class=SensorDeviceClass.ENERGY,
+        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+        state_class=SensorStateClass.TOTAL,
+        suggested_display_precision=1,
+        valore=lambda s: s.ultima_ricarica_kwh,
+    ),
+    Descrizione(
+        key="ultima_ricarica_tipo",
+        device_class=SensorDeviceClass.ENUM,
+        options=["ac", "dc"],
+        valore=lambda s: s.ultima_ricarica_tipo,
+    ),
+    Descrizione(
+        key="ultima_ricarica_inizio",
+        device_class=SensorDeviceClass.TIMESTAMP,
+        valore=lambda s: s.ultima_ricarica_inizio,
+    ),
+    Descrizione(
+        key="ultima_ricarica_fine",
+        device_class=SensorDeviceClass.TIMESTAMP,
+        valore=lambda s: s.ultima_ricarica_fine,
+    ),
+    Descrizione(
         key="ricarica_inizio",
         valore=lambda s: s.ricarica_ora_inizio,
     ),

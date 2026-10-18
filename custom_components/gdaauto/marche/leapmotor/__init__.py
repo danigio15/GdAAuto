@@ -8,7 +8,7 @@ modello sconosciuto ripiega sul formato della C10.
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
+from datetime import UTC, datetime, tzinfo
 from pathlib import Path
 import shutil
 from typing import Any
@@ -21,6 +21,7 @@ from cryptography.x509.oid import NameOID
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.util import dt as dt_util
 
 from ...pem import FormatoSconosciuto, in_pem, tipo_di
 from ..base import ACCESSO_CAMPI, Accesso, Campo
@@ -81,7 +82,9 @@ INTERVALLO_MINIMO_SECONDI = 10
 RISPARMIO_PREDEFINITO = False
 
 
-def crea(sessione_http: aiohttp.ClientSession, dati: dict[str, Any], cartella: Path, lingua: str) -> ClienteLeapmotor:
+def crea(
+    sessione_http: aiohttp.ClientSession, dati: dict[str, Any], cartella: Path, lingua: str, fuso: tzinfo = UTC
+) -> ClienteLeapmotor:
     return ClienteLeapmotor(
         sessione_http,
         email=dati["email"],
@@ -91,6 +94,7 @@ def crea(sessione_http: aiohttp.ClientSession, dati: dict[str, Any], cartella: P
         cartella=cartella,
         lingua=lingua,
         base_url=dati.get("base_url") or BASE_URL,
+        fuso=fuso,
     )
 
 
@@ -174,7 +178,13 @@ def vettura_con_pin(vetture: list[Any]) -> Any:
 
 async def crea_da_voce(hass: HomeAssistant, entry: ConfigEntry, cartella: str) -> ClienteLeapmotor:
     # La sessione di tutti va bene: il certificato si passa a ogni richiesta.
-    return crea(async_get_clientsession(hass), dict(entry.data), Path(cartella), hass.config.language)
+    return crea(
+        async_get_clientsession(hass),
+        dict(entry.data),
+        Path(cartella),
+        hass.config.language,
+        dt_util.get_default_time_zone(),
+    )
 
 
 __all__ = [

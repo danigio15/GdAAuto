@@ -129,6 +129,8 @@ async def test_la_plancia_di_gdahome_riconosce_l_auto(hass: HomeAssistant, clien
     )
     lega = json.loads(esito.stdout)
     mappa = lega["mappa"]
+    if os.environ.get("GDAAUTO_STAMPA_MAPPA"):
+        print(json.dumps(mappa, indent=1, sort_keys=True))
     assert lega["tipo"] == ""  # elettrica
     assert mappa["dm.ev_batteria_auto"] == "sensor.grande_batteria"
     assert mappa["dm.ev_autonomia"] == "sensor.grande_autonomia"
