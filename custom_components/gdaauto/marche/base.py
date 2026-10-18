@@ -72,6 +72,8 @@ class Campo:
     #: per una tendina: (valore, etichetta)
     scelte: tuple[tuple[str, str], ...] = ()
     predefinito: str | None = None
+    #: per un file (certificati, chiavi): le estensioni; il modulo offre di caricarlo invece di incollarlo
+    carica: str = ""
 
     def __post_init__(self) -> None:
         if self.nome not in VOCABOLARIO:

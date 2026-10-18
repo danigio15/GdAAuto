@@ -17,12 +17,14 @@ legge l'auto da lì.
 from __future__ import annotations
 
 from collections.abc import Mapping
+import contextlib
 import logging
 from types import ModuleType
 from typing import Any
 
+from homeassistant.components.file_upload import process_uploaded_file
 from homeassistant.config_entries import SOURCE_REAUTH, ConfigEntry, ConfigFlowResult, OptionsFlow
-from homeassistant.core import callback
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import (
     config_entry_oauth2_flow,
     device_registry as dr,
@@ -32,7 +34,7 @@ from homeassistant.helpers import (
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 import voluptuous as vol
 
-from . import fonte_ha as f
+from . import fonte_ha as f, pem
 from .const import (
     COMANDI_ATTIVI_PREDEFINITI,
     COMANDO_APRI,
@@ -75,6 +77,10 @@ from .marche.errori import CodiceInviato, CodiceSbagliato, ErroreCertificato, Er
 CONF_SCELTA = "marchio_scelto"
 
 
+#: Il campo di un file caricato si chiama come il campo del testo, più questo.
+_FILE = "_file"
+
+
 def _selettore(c: Campo) -> Any:
     if c.scelte:
         return selector.SelectSelector(
@@ -107,7 +113,45 @@ def _schema(campi: tuple[Campo, ...], salta: Mapping[str, Any], reauth: bool = F
                 else vol.Optional(c.nome, default=c.predefinito)
             )
         schema[chiave] = _selettore(c)
+        if c.carica:
+            # Da un telefono o da un tablet un file si carica meglio di quanto si incolli.
+            schema[vol.Optional(c.nome + _FILE)] = selector.FileSelector(selector.FileSelectorConfig(accept=c.carica))
     return vol.Schema(schema)
+
+
+def _leggi_caricato(hass: HomeAssistant, id_file: str) -> bytes:
+    """Il contenuto di un file caricato nel modulo. Bloccante: va nell'executor."""
+    with process_uploaded_file(hass, id_file) as percorso:
+        return percorso.read_bytes()
+
+
+async def _con_i_file(hass: HomeAssistant, campi: tuple[Campo, ...], dati: dict[str, Any]) -> dict[str, Any]:
+    """Mette i file caricati al posto del loro id, in PEM; un file vince sul testo incollato.
+
+    Un PKCS#12 porta certificato e chiave insieme: riempie anche l'altro campo,
+    se per quello non è stato caricato un file suo.
+    """
+    caricati = {c.nome: dati.pop(c.nome + _FILE, None) for c in campi if c.carica}
+    for nome, id_file in caricati.items():
+        if not id_file:
+            continue
+        try:
+            grezzo = await hass.async_add_executor_job(_leggi_caricato, hass, id_file)
+            dati[nome] = pem.in_pem(grezzo, pem.tipo_di(nome))
+            if b"-----BEGIN" in grezzo:
+                continue
+            with contextlib.suppress(pem.FormatoSconosciuto):
+                cert, chiave = pem.da_pkcs12(grezzo)
+                for altro in (a for a, f in caricati.items() if not f):
+                    if contenuto := chiave if pem.tipo_di(altro) == pem.CHIAVE else cert:
+                        dati[altro] = contenuto
+        except (OSError, ValueError) as err:
+            raise FileIllegibile(str(err)) from err
+    return dati
+
+
+class FileIllegibile(Exception):
+    """Il file caricato non c'è più, è vuoto, o non è testo."""
 
 
 def _errore(err: Exception) -> str:
@@ -217,11 +261,14 @@ class GdaautoConfigFlow(config_entry_oauth2_flow.AbstractOAuth2FlowHandler, doma
         if user_input is not None:
             dati = {**self._dati, **{k: v for k, v in user_input.items() if v not in (None, "")}}
             try:
+                dati = await _con_i_file(self.hass, modulo.CAMPI, dati)
                 if modulo.ACCESSO == ACCESSO_DISPOSITIVO:
                     self._dati = dati
                     self._dispositivo_login = await modulo.avvia_dispositivo(self.hass, dati)
                     return await self.async_step_conferma_dispositivo()
                 accesso = await modulo.prova_accesso(self.hass, dati)
+            except FileIllegibile:
+                errori["base"] = "file"
             except ErroreMarca as err:
                 errori["base"] = _errore(err)
             else:
@@ -231,7 +278,9 @@ class GdaautoConfigFlow(config_entry_oauth2_flow.AbstractOAuth2FlowHandler, doma
                     return await self._fine_accesso(accesso)
         schema = _schema(modulo.CAMPI, self._marchio.preimpostati if self._marchio else {}, reauth)
         segreti = {c.nome for c in modulo.CAMPI if c.segreto}
-        suggeriti = user_input or {k: v for k, v in self._dati.items() if k in schema.schema and k not in segreti}
+        suggeriti = {k: v for k, v in (user_input or {}).items() if not k.endswith(_FILE)} or {
+            k: v for k, v in self._dati.items() if k in schema.schema and k not in segreti
+        }
         return self.async_show_form(
             step_id="credenziali",
             data_schema=self.add_suggested_values_to_schema(schema, suggeriti),

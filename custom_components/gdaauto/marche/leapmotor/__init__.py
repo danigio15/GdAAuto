@@ -18,6 +18,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
+from ...pem import FormatoSconosciuto, in_pem, tipo_di
 from ..base import ACCESSO_CAMPI, Accesso, Campo
 from ..errori import ErroreCertificato
 from .cliente import BASE_URL, ID, NOME, ClienteLeapmotor, comandi_di
@@ -27,24 +28,28 @@ CARTELLA_PEM = "gdaauto"
 
 ACCESSO = ACCESSO_CAMPI
 
+#: PEM, DER o PKCS#12: GdAAuto li converte da sola.
+_FILE_ACCETTATI = ".pem,.crt,.cer,.cert,.der,.key,.p12,.pfx"
+
 CAMPI = (
     Campo("email"),
     Campo("password", segreto=True),
-    Campo("cert_app", obbligatorio=False, lungo=True),
-    Campo("chiave_app", obbligatorio=False, lungo=True, segreto=True),
+    Campo("cert_app", obbligatorio=False, lungo=True, carica=_FILE_ACCETTATI),
+    Campo("chiave_app", obbligatorio=False, lungo=True, segreto=True, carica=_FILE_ACCETTATI),
 )
 
 NOTA = {
     "it": (
         "Usa un account Leapmotor **dedicato**, con l'auto condivisa dall'account principale: il cloud tiene "
         "una sessione sola per account, e con lo stesso account l'app sul telefono verrebbe disconnessa. "
-        "Il certificato e la chiave dell'app Leapmotor non sono pubblici: incollali qui, oppure mettili come "
-        "`app_cert.pem` e `app_key.pem` in `/config/gdaauto`."
+        "Il certificato e la chiave dell'app Leapmotor non sono in GdAAuto: caricali dal dispositivo (PEM, DER "
+        "o .p12), incollane il testo, oppure mettili come `app_cert.pem` e `app_key.pem` in `/config/gdaauto`."
     ),
     "en": (
         "Use a **dedicated** Leapmotor account with the car shared from your main account: the cloud keeps one "
         "session per account, and sharing it would log out the phone app. The Leapmotor app certificate and key "
-        "are not public: paste them here, or put them as `app_cert.pem` and `app_key.pem` in `/config/gdaauto`."
+        "are not shipped with GdAAuto: upload them from your device (PEM, DER or .p12), paste their text, or put "
+        "them as `app_cert.pem` and `app_key.pem` in `/config/gdaauto`."
     ),
 }
 
@@ -67,11 +72,14 @@ def crea(sessione_http: aiohttp.ClientSession, dati: dict[str, Any], cartella: P
 
 
 def _pem_da_file(hass: HomeAssistant, dati: dict[str, Any]) -> dict[str, Any]:
-    """Se i PEM non sono stati incollati, si cercano in /config/gdaauto."""
+    """Se i PEM non sono stati incollati, si cercano in /config/gdaauto (anche in DER o PKCS#12)."""
     cartella = Path(hass.config.path(CARTELLA_PEM))
     for campo, nome in (("cert_app", "app_cert.pem"), ("chiave_app", "app_key.pem")):
         if not (dati.get(campo) or "").strip() and (cartella / nome).is_file():
-            dati[campo] = (cartella / nome).read_text()
+            try:
+                dati[campo] = in_pem((cartella / nome).read_bytes(), tipo_di(campo))
+            except FormatoSconosciuto as err:
+                raise ErroreCertificato(f"/config/{CARTELLA_PEM}/{nome} non si apre: {err}") from err
     return dati
 
 

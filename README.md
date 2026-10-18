@@ -120,10 +120,13 @@ dato arriva più tardi, per esempio alla prima ricarica, l'entità nasce allora.
 1. **Un account dedicato.** Il cloud Leapmotor tiene una sola sessione per
    account: con lo stesso account l'app sul telefono verrebbe disconnessa.
    Crea un secondo account e, dall'app ufficiale, **condividi l'auto** con lui.
-2. **Il certificato dell'app.** Il cloud vuole il certificato dell'app
-   Leapmotor (`app_cert.pem`, `app_key.pem`), che non è pubblico e non è in
-   questa repository. Lo incolli nella configurazione, oppure metti i due file
-   in `/config/gdaauto/`.
+2. **Il certificato dell'app.** Il cloud vuole il certificato e la chiave
+   dell'app Leapmotor, che non sono in questa repository. Nella
+   configurazione **carichi i due file** dal telefono o dal computer: vanno
+   bene PEM (testo), DER (binario) o un unico `.p12`/`.pfx` senza password,
+   che porta tutti e due. GdAAuto li converte da sola. In alternativa ne
+   incolli il testo, o metti i due file in `/config/gdaauto/` come
+   `app_cert.pem` e `app_key.pem`.
 3. **Il PIN dell'auto**, nelle opzioni, serve per i comandi. Senza PIN si
    legge tutto e non si comanda niente; la destinazione al navigatore va anche
    senza.

@@ -84,7 +84,9 @@
           "vin": "VIN (numero di telaio)",
           "telefono": "Telefono",
           "cert_app": "Certificato dell'app (app_cert.pem)",
+          "cert_app_file": "Carica il certificato (file PEM, DER o .p12)",
           "chiave_app": "Chiave dell'app (app_key.pem)",
+          "chiave_app_file": "Carica la chiave (file PEM, DER o .p12)",
           "codice": "Codice"
         }
       },
@@ -104,7 +106,8 @@
       "codice": "Il codice non va, o è scaduto. Rifai il login e incolla quello nuovo.",
       "in_attesa": "Non risulta ancora confermato: conferma il codice sul sito e riprova.",
       "codice_inviato": "Ti abbiamo mandato un codice di verifica (per email o SMS): scrivilo nel campo «Codice» e invia di nuovo.",
-      "codice_sbagliato": "Il codice di verifica non va o è scaduto: controllalo, o lascia il campo vuoto per riceverne uno nuovo."
+      "codice_sbagliato": "Il codice di verifica non va o è scaduto: controllalo, o lascia il campo vuoto per riceverne uno nuovo.",
+      "file": "Il file caricato non è un certificato o una chiave che si apre (PEM, DER, o PKCS#12 senza password)."
     },
     "abort": {
       "already_configured": "Questa auto o questo account ci sono già.",
