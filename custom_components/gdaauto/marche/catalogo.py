@@ -99,8 +99,10 @@ MARCHI: tuple[Marchio, ...] = (
     Marchio(
         "jaguar",
         "Jaguar",
-        ha="Jaguar Land Rover InControl (HACS)",
-        link="https://github.com/msp1974/homeassistant-jlrincontrol",
+        "jlr",
+        {"marchio": "jaguar"},
+        "Jaguar Land Rover InControl (HACS)",
+        "https://github.com/msp1974/homeassistant-jlrincontrol",
     ),
     Marchio("jeep", "Jeep", "uconnect", {"marchio": "jeep"}, _U, _U_LINK),
     Marchio(
@@ -112,6 +114,14 @@ MARCHI: tuple[Marchio, ...] = (
         "https://github.com/Hyundai-Kia-Connect/kia_uvo",
     ),
     Marchio("lancia", "Lancia", "uconnect", {"marchio": "lancia"}, _U, _U_LINK),
+    Marchio(
+        "land_rover",
+        "Land Rover",
+        "jlr",
+        {"marchio": "land_rover"},
+        "Jaguar Land Rover InControl (HACS)",
+        "https://github.com/msp1974/homeassistant-jlrincontrol",
+    ),
     Marchio(
         "leapmotor",
         "Leapmotor",

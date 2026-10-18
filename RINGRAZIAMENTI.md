@@ -457,6 +457,44 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
+## Jaguar Land Rover — ardevd/jlrpy e msp1974/homeassistant-jlrincontrol, licenza MIT
+
+<https://github.com/ardevd/jlrpy> · <https://github.com/msp1974/homeassistant-jlrincontrol>
+
+Da jlrpy: gli indirizzi ifas/ifop/if9 (resto del mondo e Cina), il giro
+token → registrazione del dispositivo → utente, le intestazioni e gli
+identificativi dell'app (`ICR_JAGUAR_ANDROID`, l'`x-App-Secret`), i tipi MIME,
+i nomi dei servizi (RDL, RDU, HBLF, ECC, CP) e i loro parametri. Da
+homeassistant-jlrincontrol: i nomi delle chiavi di stato e il loro
+significato, le gomme in decimi di kPa, la temperatura della
+preclimatizzazione, gli esiti delle pratiche e i servizi attivi. Il codice di
+GdAAuto (`marche/jlr/`) è scritto da capo.
+
+```
+MIT License
+
+Copyright (c) 2018 ardevd
+Copyright (c) 2020 Mark Parker
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
 ## Tesla — la documentazione ufficiale
 
 La Fleet API è documentata da Tesla su <https://developer.tesla.com/docs/fleet-api>.
