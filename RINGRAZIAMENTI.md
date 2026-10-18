@@ -388,6 +388,43 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
+## Hyundai-Kia-Connect/hyundai_kia_connect_api — licenza MIT
+
+<https://github.com/Hyundai-Kia-Connect/hyundai_kia_connect_api>
+
+Da qui vengono i fatti del cloud europeo di Kia, Hyundai e Genesis: gli
+identificativi e le chiavi pubbliche delle app, gli indirizzi, i passi del
+login della OneApp con la password cifrata, la firma `X-Fingerprint` con le
+sue chiavi e il timbro `Stamp`, gli indirizzi dello stato (CCS2 e formato
+vecchio) e dei comandi, e la posizione dei campi nello stato. Il cliente di
+GdAAuto è scritto da capo, asincrono. I due stati delle prove
+(`tests/hyundai_kia_campioni/`) sono campioni del progetto, già anonimizzati;
+le due impronte di prova sono i suoi vettori verificati.
+
+```
+MIT License
+
+Copyright (c) 2021, Fuat Akgun
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
 ## Tesla — la documentazione ufficiale
 
 La Fleet API è documentata da Tesla su <https://developer.tesla.com/docs/fleet-api>.

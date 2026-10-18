@@ -5,7 +5,6 @@ from __future__ import annotations
 from dataclasses import asdict
 from typing import Any
 
-from homeassistant.components.diagnostics import async_redact_data
 from homeassistant.core import HomeAssistant
 
 from . import GdaautoConfigEntry, chiavi_da_redigere
@@ -26,6 +25,25 @@ _DA_TOGLIERE = chiavi_da_redigere() | {
 }
 
 
+#: Nei dati grezzi dei cloud la posizione ha mille nomi: «Latitude», «gpsLatitude», «lat»…
+_POSIZIONE = ("latitud", "longitud")
+_CORTE = {"lat", "lon", "lng", "vin"}
+
+
+def _da_togliere(chiave: object) -> bool:
+    testo = str(chiave).lower()
+    return chiave in _DA_TOGLIERE or testo in _CORTE or any(p in testo for p in _POSIZIONE)
+
+
+def _togli(dati: Any) -> Any:
+    """Come ``async_redact_data``, ma la posizione si riconosce in qualunque forma."""
+    if isinstance(dati, dict):
+        return {k: "**REDACTED**" if _da_togliere(k) else _togli(v) for k, v in dati.items()}
+    if isinstance(dati, list | tuple):
+        return [_togli(x) for x in dati]
+    return dati
+
+
 async def async_get_config_entry_diagnostics(_hass: HomeAssistant, entry: GdaautoConfigEntry) -> dict[str, Any]:
     auto = []
     for i, a in enumerate(entry.runtime_data.auto):
@@ -40,11 +58,11 @@ async def async_get_config_entry_diagnostics(_hass: HomeAssistant, entry: Gdaaut
                 "comandi": sorted(a.comandi),
                 "intervallo": str(a.update_interval) if a.update_interval else None,
                 "ultimo_esito": a.last_update_success,
-                "stato": async_redact_data(stato, _DA_TOGLIERE) if stato else None,
+                "stato": _togli(stato) if stato else None,
             }
         )
     return {
-        "dati": async_redact_data(dict(entry.data), _DA_TOGLIERE),
-        "opzioni": async_redact_data(dict(entry.options), _DA_TOGLIERE),
+        "dati": _togli(dict(entry.data)),
+        "opzioni": _togli(dict(entry.options)),
         "auto": auto,
     }

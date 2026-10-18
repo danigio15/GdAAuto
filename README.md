@@ -5,7 +5,7 @@
 <h3 align="center">Tutte le auto elettriche in Home Assistant, con la stessa faccia.<br>E dentro GdAHome e gdanav da sole.</h3>
 
 <p align="center">
-  Leapmotor, Tesla e Stellantis dal loro cloud · Kia, BMW, Renault e tutte le altre da Home Assistant
+  49 marchi: 26 letti direttamente dal loro cloud, gli altri da Home Assistant
 </p>
 
 ---
@@ -23,26 +23,83 @@ il dispositivo GdAAuto e tutte le caselle si riempiono, senza scrivere un
 `entity_id`. Una prova automatica lo controlla col codice vero di tutte e due
 a ogni modifica.
 
-## Due strade per entrare
+## Si comincia dal marchio
 
-| | Come | Per chi |
+Aggiungi GdAAuto e **scegli il marchio** della tua auto. Da lì parte la sua
+strada:
+
+- **Il marchio è nativo**: GdAAuto parla direttamente col cloud del
+  costruttore, e chiede quello che serve a quella marca (email e password,
+  un codice da confermare sul sito, l'accesso col browser…).
+- **Il marchio non è nativo**: GdAAuto dice quale integrazione di Home
+  Assistant installare, con il link. Quando l'auto c'è, GdAAuto la legge da
+  lì e le dà la stessa faccia delle altre.
+- **Il marchio non è in elenco**: scegli «Un'altra marca» e prendi l'auto
+  da qualunque integrazione già presente in Home Assistant.
+
+Tutto quello che è nativo è **gratis**: usa gli stessi servizi dell'app del
+costruttore, senza abbonamenti in più. L'unica eccezione è Tesla, vedi sotto.
+
+## I marchi nativi
+
+| Marchio | Si entra con | Legge | Comanda |
+| --- | --- | :---: | --- |
+| **Leapmotor** (T03, B05, B10, C10, C16) | account condiviso + certificato dell'app | ✓ | chiudi e apri, clima, ricarica, limite, trova, destinazione (col PIN dell'auto) |
+| **Tesla** | app sviluppatore Tesla (Fleet API) | ✓ | chiudi e apri, clima, ricarica, limite, trova, destinazione |
+| **Peugeot, Citroën, DS, Opel, Vauxhall** | login nel browser, codice incollato | ✓ | nessuno, per ora |
+| **Fiat, Abarth, Jeep, Alfa Romeo, Lancia, Maserati** | email e password dell'app (Uconnect) | ✓ | chiudi e apri, clima, ricarica, trova (col PIN dell'app) |
+| **Renault, Dacia, Alpine** | email e password, codice per email se chiesto | ✓ | clima, ricarica, limite, trova (secondo il modello) |
+| **Kia, Hyundai, Genesis** (auto europee) | email e password dell'app | ✓ | chiudi e apri, clima, ricarica, limite, destinazione, trova sulle auto recenti (col PIN dell'app) |
+| **BMW, Mini** | codice da confermare sul sito MyBMW (CarData) | ✓ | nessuno: BMW CarData è solo lettura |
+| **Mercedes-Benz** | email e password di un account invitato | ✓ | chiudi e apri, clima, limite, trova (apri col PIN) |
+| **Toyota, Lexus** | email e password di MyToyota / Lexus Link+ | ✓ | chiudi e apri, clima (secondo l'auto) |
+| **MG** | email e password di un account secondario | ✓ | chiudi e apri, clima, ricarica, limite, trova |
+| **Polestar** | Polestar ID | ✓ | nessuno: Polestar non li apre a terzi |
+
+Un comando compare solo se la tua auto lo accetta: GdAAuto lo chiede al cloud,
+o lo sa dal modello.
+
+**Quanto spesso legge**, se non scegli tu nelle opzioni:
+
+| Marchio | Da ferma | In marcia o in carica |
 | --- | --- | --- |
-| **La marca** | GdAAuto parla direttamente col cloud del costruttore | **Leapmotor**: T03, B05, B10, C10, C16 e i modelli che verranno · **Tesla**: tutte, con l'API ufficiale · **Stellantis**: Peugeot, Citroën, DS, Opel, Vauxhall |
-| **Home Assistant** | L'auto ha già la sua integrazione; GdAAuto la legge da lì | **Kia e Hyundai, BMW, Renault, Volkswagen, Polestar, Fiat, Jeep** e tutte le altre |
+| Leapmotor | 5 min | 1 min |
+| Tesla, Polestar | 10 min | 2 min |
+| Kia, Hyundai, Genesis, Mercedes, Renault, Uconnect | 10 min | 5 min |
+| Stellantis | 5 min | 1 min |
+| Toyota | 15 min | 10 min |
+| MG | 30 min | 5 min |
+| BMW | 30 min | 30 min (50 letture al giorno per account) |
 
-Quello che ogni marca nativa sa fare:
+## I marchi da Home Assistant
 
-| | Legge | Comanda |
-| --- | :---: | --- |
-| **Leapmotor** | ✓ | chiudi e apri, clima, ricarica, limite, trova, destinazione (col PIN dell'auto) |
-| **Tesla** | ✓ | chiudi e apri, clima, ricarica, limite, trova, destinazione |
-| **Stellantis** | ✓ | per ora nessuno: i comandi passano da MQTT con un codice via SMS, e arriveranno |
+| Marchio | Integrazione da installare |
+| --- | --- |
+| **BYD** | [hass-byd-vehicle](https://github.com/jkaberg/hass-byd-vehicle) (HACS) |
+| **Volkswagen, Audi, Cupra, Seat** | l'integrazione del gruppo per la tua marca ([Audi Connect](https://github.com/audiconnect/audi_connect_ha) per Audi) |
+| **Škoda** | [MyŠkoda](https://github.com/skodaconnect/homeassistant-myskoda), o l'integrazione ufficiale |
+| **Volvo** | [Volvo](https://www.home-assistant.io/integrations/volvo), ufficiale |
+| **Ford** | [FordPass](https://github.com/itchannel/fordpass-ha) (HACS) |
+| **Nissan** | Nissan Connect (HACS); [Nissan Leaf](https://www.home-assistant.io/integrations/nissan_leaf) per le Leaf prima del 2019 |
+| **Porsche** | [Porsche Connect](https://github.com/CJNE/ha-porscheconnect) (HACS) |
+| **Jaguar, Land Rover** | [JLR InControl](https://github.com/msp1974/homeassistant-jlrincontrol) (HACS) |
+| **Rivian** | [Rivian](https://github.com/bretterer/home-assistant-rivian) (HACS) |
+| **smart** | Hello smart (HACS) per #1 e #3; Mercedes-Benz per le EQ |
+| **Lucid, Subaru** | le loro integrazioni (Subaru solo negli Stati Uniti) |
 
-Con la seconda strada GdAAuto guarda le entità del dispositivo dell'auto e
-**propone da solo** quale è la batteria, quale l'autonomia, quale la serratura.
-Tu controlli e confermi. I comandi passano per le entità vere dell'auto:
-chiudere usa la sua serratura, il clima il suo clima, il limite di ricarica il
-suo cursore.
+**Perché BYD non è nativa.** Il cloud BYD cifra ogni richiesta con tabelle
+estratte dall'app, che nessuno ha il diritto di ridistribuire. GdAAuto non le
+copia: passa dall'integrazione della comunità, che l'utente installa da sé.
+
+**Aiways, Honda, Lotus, Lynk & Co, Mazda, NIO, Xpeng e Zeekr** non hanno
+ancora un'API che si possa usare. Se un giorno nasce un'integrazione per
+Home Assistant, GdAAuto la legge con «Un'altra marca».
+
+Con la strada di Home Assistant GdAAuto guarda le entità del dispositivo
+dell'auto e **propone da solo** quale è la batteria, quale l'autonomia, quale
+la serratura. Tu controlli e confermi. I comandi passano per le entità vere
+dell'auto: chiudere usa la sua serratura, il clima il suo clima, il limite di
+ricarica il suo cursore.
 
 ## Cosa c'è nel dispositivo
 
@@ -94,6 +151,14 @@ sviluppatore Tesla:
 3. **Aggiungi GdAAuto → Tesla**, ed entra col tuo account Tesla. La regione
    la capisce da sola.
 
+**Quanto costa.** La Fleet API si paga a consumo, ma Tesla regala a ogni
+account sviluppatore un credito di 10 $ al mese. Una lettura completa costa
+0,002 $, e chiedere se l'auto è sveglia non costa niente: con una o due auto
+e il ritmo di GdAAuto si resta dentro il credito, quindi in pratica è
+gratis. Chi non vuole un'app sviluppatore può usare un'integrazione Tesla
+via Bluetooth (per esempio `ha-tesla-ble`, o un ESP32) e prendere l'auto
+con «Un'altra marca».
+
 **L'auto che dorme non si sveglia per leggerla**: ogni lettura e ogni
 sveglia costano a chi ha l'app sviluppatore. Da addormentata restano gli
 ultimi dati, con l'entità «In sonno» accesa; si sveglia solo per un comando.
@@ -110,10 +175,11 @@ non passano.
 
 Peugeot, Citroën, DS, Opel e Vauxhall, elettriche e ibride plug-in, col
 cloud dell'app del marchio (MyPeugeot, MyCitroën, MyDS, MyOpel, MyVauxhall).
-Fiat, Jeep, Alfa Romeo e Lancia usano un altro cloud: per loro c'è la
-strada «È già in Home Assistant».
+Fiat, Abarth, Jeep, Alfa Romeo, Lancia e Maserati usano un altro cloud,
+Uconnect, che è nativo anche lui.
 
-1. **Aggiungi GdAAuto → Stellantis**, scegli l'app e il paese.
+1. **Aggiungi GdAAuto** e scegli il marchio: l'app giusta è già scelta,
+   resta il paese.
 2. **Entra nel browser di un computer**, col link che GdAAuto ti mostra e gli
    strumenti per sviluppatori aperti (F12, scheda Rete).
 3. Alla fine il browser prova ad aprire un indirizzo come
@@ -123,6 +189,27 @@ strada «È già in Home Assistant».
 Email e password restano nel tuo browser: GdAAuto non le vede e non le
 manda a nessuno. Il token si rinnova da solo; se un giorno non va più, Home
 Assistant chiede di rifare il login.
+
+## Le altre marche native
+
+Basta scegliere il marchio: il modulo chiede solo quello che serve e spiega
+in due righe cosa preparare. Le cose da sapere prima:
+
+- **Un account dedicato** per Leapmotor, MG e Mercedes: con lo stesso
+  account l'app sul telefono verrebbe disconnessa. Crea un secondo account e
+  condividi (o invita) l'auto dall'account principale.
+- **BMW e Mini** si collegano con CarData: nel portale MyBMW crei un Client
+  ID, lo incolli in GdAAuto e confermi il codice sul sito. BMW concede 50
+  letture al giorno per account, e GdAAuto rallenta da sola se le auto sono
+  più di una.
+- **Renault, Dacia e Alpine** a volte chiedono un codice per email: scrivilo
+  nel campo «codice» e conferma di nuovo. GdAAuto tiene il token, non la
+  password.
+- **Kia, Hyundai, Genesis, Toyota, Lexus e Uconnect** danno i dati che l'auto ha mandato l'ultima
+  volta: GdAAuto non la sveglia per leggerla. MG invece si sveglia a ogni
+  lettura, per questo legge ogni mezz'ora.
+- **Polestar** e **BMW** si leggono soltanto: i costruttori non aprono i
+  comandi alle app di terzi.
 
 ## La sicurezza dei comandi
 
@@ -152,7 +239,7 @@ Assistant chiede di rifare il login.
    `https://github.com/danigio15/GdAAuto`, categoria **Integrazione**.
 2. Cerca **GdAAuto**, installalo e **riavvia** Home Assistant.
 3. **Impostazioni → Dispositivi e servizi → Aggiungi integrazione → GdAAuto**,
-   e scegli da dove arriva l'auto.
+   e scegli il marchio dell'auto.
 
 Serve Home Assistant 2025.3 o più nuovo. Va su ogni installazione, anche
 Container e Core: è un'integrazione, non un add-on.
@@ -173,8 +260,7 @@ e [leapmotor-mate](https://github.com/ProtossBlaster/leapmotor-mate). Cosa fa
 di diverso:
 
 - **Più marche, una faccia.** Le altre sono solo Leapmotor; GdAAuto mette
-  Leapmotor, Tesla, Stellantis e le auto di Home Assistant sotto le stesse
-  entità.
+  26 marchi nativi e le auto di Home Assistant sotto le stesse entità.
 - **Asincrona davvero.** Il TLS reciproco col cloud lo fa `aiohttp`; non si
   lancia `curl` in un processo a parte per ogni richiesta.
 - **Il ritmo segue l'auto**: più spesso in marcia e in carica, meno da chiusa.
@@ -199,9 +285,10 @@ Il logo si rifà da `docs/logo/logo.svg` con `node docs/logo/rendi.mjs`.
 
 ## Avvertenze
 
-GdAAuto non è prodotto né sostenuto da Leapmotor, Tesla, Stellantis o altri
-costruttori. Il cloud Leapmotor non è documentato pubblicamente: può cambiare
-senza preavviso, e l'uso resta sotto le sue condizioni. I comandi agiscono su
+GdAAuto non è prodotto né sostenuto da nessuno dei costruttori citati. Tranne
+Tesla Fleet e BMW CarData, i cloud delle marche non sono documentati
+pubblicamente: possono cambiare senza preavviso, e l'uso resta sotto le loro
+condizioni. I comandi agiscono su
 un'auto vera.
 
 ## Licenza
