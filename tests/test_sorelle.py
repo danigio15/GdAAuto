@@ -12,6 +12,7 @@ questa repository. Senza, le prove si saltano.
 
 from __future__ import annotations
 
+import dataclasses
 import importlib.util
 import json
 import os
@@ -73,6 +74,8 @@ async def test_gdanav_riconosce_l_auto(hass: HomeAssistant, cliente, lingua: str
     hass.config.language = lingua
     await _installa(hass, _voce_cloud())
     riconosci = _riconosci_di_gdanav()
+    # Il gdanav nuovo riconosce GdAAuto dalla chiave; quello di prima solo dalle parole.
+    dalla_chiave = "chiave" in {f.name for f in dataclasses.fields(riconosci.Entita)}
     # Come fa il config flow di gdanav: nome dal registro, unità e classe dallo stato.
     entita = [
         riconosci.Entita(
@@ -80,10 +83,12 @@ async def test_gdanav_riconosce_l_auto(hass: HomeAssistant, cliente, lingua: str
             nome=e.name or e.original_name or (s.name if s else ""),
             unita=(s.attributes.get("unit_of_measurement") if s else None) or e.unit_of_measurement,
             classe=(s.attributes.get("device_class") if s else None) or e.device_class or e.original_device_class,
+            **({"piattaforma": e.platform, "chiave": e.translation_key} if dalla_chiave else {}),
         )
         for e, s in _entita_del_dispositivo(hass, B10_VIN)
     ]
-    assert riconosci.proponi(entita) == {
+    proposta = riconosci.proponi(entita)
+    attesa = {
         "entita_batteria": "sensor.grande_batteria",
         "entita_autonomia": "sensor.grande_autonomia",
         "entita_in_carica": "binary_sensor.grande_in_carica",
@@ -94,6 +99,14 @@ async def test_gdanav_riconosce_l_auto(hass: HomeAssistant, cliente, lingua: str
         "entita_potenza": "sensor.grande_potenza",
         "entita_odometro": "sensor.grande_odometro",
     }
+    if dalla_chiave:
+        # I dati del consumo (docs/DATI-AUTO.md), quando l'auto li manda.
+        attesa |= {
+            "entita_consumo_medio": "sensor.grande_consumo_medio",
+            "entita_temperatura_interna": "sensor.grande_temperatura_interna",
+            "entita_clima_acceso": "switch.grande_clima",
+        }
+    assert proposta == attesa
 
 
 @pytest.mark.skipif(
