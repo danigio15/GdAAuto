@@ -241,14 +241,16 @@ class GdaautoConfigFlow(config_entry_oauth2_flow.AbstractOAuth2FlowHandler, doma
     # --- Stellantis, col codice del login incollato --------------------------------
 
     async def async_step_stellantis(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
+        # Le chiavi delle traduzioni vanno minuscole: «mypeugeot» è MyPeugeot.
+        app_per_chiave = {app.lower(): app for app in stellantis.APP}
         if user_input is not None:
-            self._stellantis = {stellantis.CONF_APP: user_input[stellantis.CONF_APP]}
+            self._stellantis = {stellantis.CONF_APP: app_per_chiave[user_input[stellantis.CONF_APP]]}
             return await self.async_step_stellantis_paese()
         schema = vol.Schema(
             {
                 vol.Required(stellantis.CONF_APP): selector.SelectSelector(
                     selector.SelectSelectorConfig(
-                        options=list(stellantis.APP),
+                        options=list(app_per_chiave),
                         translation_key="app_stellantis",
                         mode=selector.SelectSelectorMode.LIST,
                     )

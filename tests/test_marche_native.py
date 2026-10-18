@@ -171,7 +171,7 @@ TOKEN_STELLANTIS = {
 async def test_configurare_stellantis_col_codice(hass: HomeAssistant) -> None:
     r = await hass.config_entries.flow.async_init(DOMAIN, context={"source": config_entries.SOURCE_USER})
     r = await hass.config_entries.flow.async_configure(r["flow_id"], {"next_step_id": "stellantis"})
-    r = await hass.config_entries.flow.async_configure(r["flow_id"], {"app": "MyPeugeot"})
+    r = await hass.config_entries.flow.async_configure(r["flow_id"], {"app": "mypeugeot"})
     assert r["step_id"] == "stellantis_paese"
     r = await hass.config_entries.flow.async_configure(r["flow_id"], {"paese": "IT"})
     assert r["step_id"] == "stellantis_codice"

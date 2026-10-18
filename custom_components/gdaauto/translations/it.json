@@ -151,11 +151,11 @@
     },
     "app_stellantis": {
       "options": {
-        "MyPeugeot": "MyPeugeot",
-        "MyCitroen": "MyCitroën",
-        "MyDS": "MyDS",
-        "MyOpel": "MyOpel",
-        "MyVauxhall": "MyVauxhall"
+        "mypeugeot": "MyPeugeot",
+        "mycitroen": "MyCitroën",
+        "myds": "MyDS",
+        "myopel": "MyOpel",
+        "myvauxhall": "MyVauxhall"
       }
     }
   },
