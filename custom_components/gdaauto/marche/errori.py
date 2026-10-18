@@ -36,6 +36,18 @@ class ErroreCredenziali(ErroreMarca):
     """Credenziali rifiutate o scadute: serve rientrare, non si riprova da soli."""
 
 
+class CodiceInviato(ErroreCredenziali):
+    """Il cloud ha mandato un codice (per email o SMS): va scritto nel campo «codice».
+
+    È una sottoclasse delle credenziali: se capita fuori dalla configurazione,
+    vuol dire che serve rientrare.
+    """
+
+
+class CodiceSbagliato(ErroreCredenziali):
+    """Il codice di verifica non va, o è scaduto: si può riprovare con quello giusto."""
+
+
 class ErroreCertificato(ErroreMarca):
     """Un certificato manca, non si apre o il cloud lo rifiuta."""
 

@@ -70,7 +70,7 @@ from .marche.base import (
     InAttesa,
 )
 from .marche.catalogo import ALTRO, MARCHI, PER_ID, Marchio
-from .marche.errori import ErroreCertificato, ErroreCredenziali, ErroreMarca
+from .marche.errori import CodiceInviato, CodiceSbagliato, ErroreCertificato, ErroreCredenziali, ErroreMarca
 
 CONF_SCELTA = "marchio_scelto"
 
@@ -111,6 +111,10 @@ def _schema(campi: tuple[Campo, ...], salta: Mapping[str, Any], reauth: bool = F
 
 
 def _errore(err: Exception) -> str:
+    if isinstance(err, CodiceInviato):
+        return "codice_inviato"
+    if isinstance(err, CodiceSbagliato):
+        return "codice_sbagliato"
     if isinstance(err, ErroreCredenziali):
         return "credenziali"
     if isinstance(err, ErroreCertificato):

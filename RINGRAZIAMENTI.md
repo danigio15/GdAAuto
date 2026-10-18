@@ -271,6 +271,43 @@ si sono letti, senza prenderne codice né tabelle:
   errore CU-xxx, il limite di 50 chiamate al giorno e la forma delle risposte;
 - JjyKsi/bmw-cardata-ha (pubblico dominio): solo consultato.
 
+## hacf-fr/renault-api — licenza MIT
+
+<https://github.com/hacf-fr/renault-api>
+
+Da qui vengono gli indirizzi e le chiavi pubbliche Gigya e Kamereon per
+paese (in `marche/renault/locali.py`), la sequenza del login Gigya, del JWT e
+della verifica in due passaggi, i percorsi Kamereon KCA e KCM con i corpi dei
+comandi e la tabella delle strade per modello (in `marche/renault/modelli.json`),
+la mappa degli stati di ricarica e del cavo, e i payload d'esempio delle prove
+(`tests/renault_campioni.py`). Il codice di GdAAuto è scritto da capo.
+L'integrazione Renault di Home Assistant (Apache-2.0) è stata guardata per come
+legge cavo e ricarica e per il limite di 60 chiamate l'ora, senza copiarne codice.
+
+```
+MIT License
+
+Copyright © 2020 epenet
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
 ## Tesla — la documentazione ufficiale
 
 La Fleet API è documentata da Tesla su <https://developer.tesla.com/docs/fleet-api>.

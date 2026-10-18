@@ -130,3 +130,27 @@ async def test_un_marchio_senza_marca_nativa_va_su_home_assistant(hass: HomeAssi
         r = await hass.config_entries.flow.async_configure(r["flow_id"], {"marchio_scelto": "orfano"})
     assert r["step_id"] == "home_assistant"
     assert r["description_placeholders"]["integrazione"] == "Orfano HA"
+
+
+async def test_un_codice_mandato_per_email_si_chiede_nel_modulo(hass: HomeAssistant) -> None:
+    from custom_components.gdaauto.marche.errori import CodiceInviato
+
+    modulo = _modulo(ACCESSO_CAMPI)
+
+    async def con_codice(_hass: HomeAssistant, dati: dict[str, Any]) -> Accesso:
+        if not dati.get("codice"):
+            raise CodiceInviato("codice inviato a a***@b.it")
+        return Accesso(dict(dati), [AUTO], "finta_codice", "Finta · codice")
+
+    modulo.prova_accesso = con_codice
+    modulo.CAMPI = (Campo("email"), Campo("password", segreto=True), Campo("codice", obbligatorio=False))
+    with patch.dict(MARCHE, {"finta": modulo}), patch.dict(PER_ID, {"finta_brand": MARCHIO}):
+        r = await hass.config_entries.flow.async_init(DOMAIN, context={"source": config_entries.SOURCE_USER})
+        r = await hass.config_entries.flow.async_configure(r["flow_id"], {"marchio_scelto": "finta_brand"})
+        r = await hass.config_entries.flow.async_configure(r["flow_id"], {"email": "a@b.it", "password": "x"})
+        assert r["errors"] == {"base": "codice_inviato"}
+        r = await hass.config_entries.flow.async_configure(
+            r["flow_id"], {"email": "a@b.it", "password": "x", "codice": "123456"}
+        )
+        await hass.async_block_till_done()
+        assert r["type"] is FlowResultType.CREATE_ENTRY
