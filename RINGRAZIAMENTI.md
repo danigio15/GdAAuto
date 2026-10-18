@@ -129,6 +129,43 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
+## pytoyoda/pytoyoda e pytoyoda/ha_toyota — licenza MIT
+
+<https://github.com/pytoyoda/pytoyoda> · <https://github.com/pytoyoda/ha_toyota>
+
+Da pytoyoda vengono gli indirizzi del login ForgeRock (realm `tme`) e di
+`ctpa-oneapi`, il client `oneapp` con il suo indirizzo di ritorno, la chiave
+pubblica dell'app (`x-api-key`) e la sua versione, le intestazioni (`x-guid`,
+`x-client-ref`, `x-brand`) e la differenza fra Toyota e Lexus, i nomi dei
+campi delle risposte e i payload d'esempio delle prove
+(`tests/toyota_campioni.py`). Da ha_toyota, quali capacità dell'auto abilitano
+serratura e clima e il codice di esito del clima. Il codice di GdAAuto è
+scritto da capo.
+
+```
+MIT License
+
+Copyright (c) 2021 Simon Hansen
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
 ## Tesla — la documentazione ufficiale
 
 La Fleet API è documentata da Tesla su <https://developer.tesla.com/docs/fleet-api>.
