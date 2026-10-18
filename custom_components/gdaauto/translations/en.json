@@ -83,10 +83,10 @@
           "api_key": "API key",
           "vin": "VIN",
           "telefono": "Phone",
-          "cert_app": "App certificate (app_cert.pem)",
-          "cert_app_file": "Upload the certificate (PEM, DER or .p12 file)",
-          "chiave_app": "App key (app_key.pem)",
-          "chiave_app_file": "Upload the key (PEM, DER or .p12 file)",
+          "cert_app": "App certificate (optional: downloaded automatically if left empty)",
+          "cert_app_file": "…or upload your own certificate (PEM, DER or .p12)",
+          "chiave_app": "App key (optional: downloaded automatically if left empty)",
+          "chiave_app_file": "…or upload your own key (PEM, DER or .p12)",
           "codice": "Code"
         }
       },
@@ -107,7 +107,8 @@
       "in_attesa": "Not confirmed yet: confirm the code on the website and try again.",
       "codice_inviato": "A verification code was sent to you (by email or SMS): type it in the “Code” field and submit again.",
       "codice_sbagliato": "The verification code is wrong or expired: check it, or leave the field empty to get a new one.",
-      "file": "The uploaded file is not a certificate or a key that can be opened (PEM, DER, or PKCS#12 without a password)."
+      "file": "The uploaded file is not a certificate or a key that can be opened (PEM, DER, or PKCS#12 without a password).",
+      "pin": "The PIN is not correct: check it in the app, or leave it empty and GdAAuto will read the car without commanding it."
     },
     "abort": {
       "already_configured": "This car or account is already set up.",

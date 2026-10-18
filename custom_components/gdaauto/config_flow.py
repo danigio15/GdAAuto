@@ -58,6 +58,7 @@ from .const import (
     FONTE_CLOUD,
     FONTE_HA,
     INTERVALLO_IN_MOTO_PREDEFINITO,
+    INTERVALLO_MINIMO,
     INTERVALLO_PREDEFINITO,
 )
 from .marche import MARCHE, marca, stellantis, tesla
@@ -72,7 +73,14 @@ from .marche.base import (
     InAttesa,
 )
 from .marche.catalogo import ALTRO, MARCHI, PER_ID, Marchio
-from .marche.errori import CodiceInviato, CodiceSbagliato, ErroreCertificato, ErroreCredenziali, ErroreMarca
+from .marche.errori import (
+    CodiceInviato,
+    CodiceSbagliato,
+    ErroreCertificato,
+    ErroreCredenziali,
+    ErroreMarca,
+    ErrorePin,
+)
 
 CONF_SCELTA = "marchio_scelto"
 
@@ -163,6 +171,8 @@ def _errore(err: Exception) -> str:
         return "credenziali"
     if isinstance(err, ErroreCertificato):
         return "certificato"
+    if isinstance(err, ErrorePin):
+        return "pin"
     return "rete"
 
 
@@ -248,9 +258,13 @@ class GdaautoConfigFlow(config_entry_oauth2_flow.AbstractOAuth2FlowHandler, doma
             CONF_MARCA: modulo.ID,
             CONF_MARCHIO: self._marchio.id,
         }
+        # Il PIN chiesto nella configurazione va nelle opzioni, dove si cambia poi.
+        pin = dati.pop(CONF_PIN, None)
         if self.source == SOURCE_REAUTH:
-            return self.async_update_reload_and_abort(self._get_reauth_entry(), data_updates=dati)
-        return self.async_create_entry(title=accesso.titolo, data=dati)
+            voce = self._get_reauth_entry()
+            opzioni = {**voce.options, CONF_PIN: pin} if pin else voce.options
+            return self.async_update_reload_and_abort(voce, data_updates=dati, options=opzioni)
+        return self.async_create_entry(title=accesso.titolo, data=dati, options={CONF_PIN: pin} if pin else {})
 
     # --- le credenziali, per le marche «campi» e «dispositivo» ------------------------
 
@@ -583,10 +597,12 @@ class GdaautoOptionsFlow(OptionsFlow):
             campi[vol.Required(CONF_INTERVALLO, default=predefinito)] = selector.NumberSelector(
                 selector.NumberSelectorConfig(min=1, max=180, step=1, unit_of_measurement="min")
             )
+            minimo = getattr(modulo, "INTERVALLO_MINIMO_SECONDI", INTERVALLO_MINIMO.total_seconds())
             campi[vol.Required(CONF_INTERVALLO_IN_MOTO, default=in_moto)] = selector.NumberSelector(
-                selector.NumberSelectorConfig(min=30, max=3600, step=10, unit_of_measurement="s")
+                selector.NumberSelectorConfig(min=minimo, max=3600, step=5, unit_of_measurement="s")
             )
-            campi[vol.Required(CONF_RISPARMIO, default=True)] = selector.BooleanSelector()
+            risparmio = getattr(modulo, "RISPARMIO_PREDEFINITO", True)
+            campi[vol.Required(CONF_RISPARMIO, default=risparmio)] = selector.BooleanSelector()
         if comandi:
             campi[vol.Required(CONF_COMANDI_ATTIVI, default=COMANDI_ATTIVI_PREDEFINITI)] = selector.SelectSelector(
                 selector.SelectSelectorConfig(

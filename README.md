@@ -63,7 +63,7 @@ o lo sa dal modello.
 
 | Marchio | Da ferma | In marcia o in carica |
 | --- | --- | --- |
-| Leapmotor | 5 min | 1 min |
+| Leapmotor | 1 min | 15 s |
 | Tesla, Polestar | 10 min | 2 min |
 | Kia, Hyundai, Genesis, Mercedes, Renault, Uconnect | 10 min | 5 min |
 | Stellantis | 5 min | 1 min |
@@ -129,15 +129,18 @@ dato arriva più tardi, per esempio alla prima ricarica, l'entità nasce allora.
    i tuoi, caricali dal dispositivo (PEM, DER o un `.p12` senza password),
    incollane il testo, o mettili in `/config/gdaauto/` come `app_cert.pem` e
    `app_key.pem`.
-3. **Il PIN dell'auto**, nelle opzioni, serve per i comandi. Senza PIN si
-   legge tutto e non si comanda niente; la destinazione al navigatore va anche
-   senza.
+3. **Il PIN dei comandi** dell'app si scrive già nella configurazione (o
+   dopo, nelle opzioni): GdAAuto lo prova subito e dice se è sbagliato. Senza
+   PIN si legge tutto e non si comanda niente; la destinazione al navigatore
+   va anche senza.
 
-**Quanto spesso legge.** Ogni 5 minuti da ferma, ogni minuto in marcia o in
-carica, ogni 15 minuti quando è chiusa e senza cavo. Si cambia nelle opzioni.
-Quando qualcuno preme «Aggiorna», o gdanav in viaggio chiede dati freschi, si
-legge subito: una lettura sola anche se la chiedono in tanti, mai più di una
-ogni 30 secondi.
+**Quanto spesso legge.** Leggere il cloud Leapmotor non sveglia l'auto e non
+la scarica, quindi GdAAuto legge spesso: **ogni 15 secondi in marcia o in
+carica**, ogni minuto da ferma. Così GdAHome e gdanav vedono subito una
+ricarica che parte o un viaggio che comincia. Si cambia nelle opzioni (non
+meno di 10 secondi). Quando qualcuno preme «Aggiorna», o gdanav in viaggio
+chiede dati freschi, si legge subito: una lettura sola anche se la chiedono
+in tanti, mai più di una ogni 30 secondi.
 
 ## Tesla
 

@@ -132,10 +132,9 @@ class AutoCloud(Auto):
         predefinito = getattr(modulo, "INTERVALLO_MINUTI", INTERVALLO_PREDEFINITO)
         self._normale = timedelta(minutes=entry.options.get(CONF_INTERVALLO, predefinito))
         in_moto = getattr(modulo, "INTERVALLO_IN_MOTO_SECONDI", INTERVALLO_IN_MOTO_PREDEFINITO)
-        self._in_moto = max(
-            timedelta(seconds=entry.options.get(CONF_INTERVALLO_IN_MOTO, in_moto)),
-            INTERVALLO_MINIMO,
-        )
+        minimo = timedelta(seconds=getattr(modulo, "INTERVALLO_MINIMO_SECONDI", INTERVALLO_MINIMO.total_seconds()))
+        self._in_moto = max(timedelta(seconds=entry.options.get(CONF_INTERVALLO_IN_MOTO, in_moto)), minimo)
+        self._risparmio = entry.options.get(CONF_RISPARMIO, getattr(modulo, "RISPARMIO_PREDEFINITO", True))
         super().__init__(hass, entry, vettura, self._normale)
         self.conto = conto
         self._modulo = modulo
@@ -163,9 +162,8 @@ class AutoCloud(Auto):
             return self._normale
         if s.in_marcia or s.in_carica or s.quadro_acceso:
             return self._in_moto
-        assert self.config_entry is not None
         if (
-            self.config_entry.options.get(CONF_RISPARMIO, True)
+            self._risparmio
             and s.chiusa is True
             and not s.cavo_collegato
             and s.stato_ricarica != StatoRicarica.PROGRAMMATA
@@ -176,7 +174,8 @@ class AutoCloud(Auto):
     @property
     def _pin(self) -> str | None:
         assert self.config_entry is not None
-        return self.config_entry.options.get(CONF_PIN) or None
+        # Le voci fatte prima che il PIN si chiedesse nella configurazione lo hanno nei dati.
+        return self.config_entry.options.get(CONF_PIN) or self.config_entry.data.get(CONF_PIN) or None
 
     async def _esegui(self, comando: str, **p: Any) -> None:
         c, v, pin = self.conto.cliente, self.vettura, self._pin

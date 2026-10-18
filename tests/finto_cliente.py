@@ -31,6 +31,11 @@ class FintoCliente:
         self.letture += 1
         return interpreta(self.stati[v.vin])
 
+    async def verifica_pin(self, v: Vettura, pin: str) -> None:
+        self.chiamate.append(("verifica_pin", (v.vin,)))
+        if pin != "1234":
+            raise ErrorePin("PIN sbagliato")
+
     async def _comando(self, nome: str, v: Vettura, pin: str | None, *resto: Any) -> None:
         if nome != "destinazione" and not pin:
             raise ErrorePin("serve il PIN")

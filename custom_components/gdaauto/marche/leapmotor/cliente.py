@@ -458,7 +458,7 @@ class ClienteLeapmotor:
                 corpo = {"cmdContent": testo, "vin": vettura.vin, "cmdId": cmd_id}
             else:
                 if not pin:
-                    raise ErrorePin("Questo comando vuole il PIN dell'auto: scrivilo nelle opzioni di gdaauto")
+                    raise ErrorePin("Questo comando vuole il PIN dell'auto: scrivilo nelle opzioni di GdAAuto")
                 pin_cifrato = cripto.cifra_pin(pin, s.token)
                 await self._sincronizza_cert()
                 await self._verifica_pin(vettura, pin_cifrato)
@@ -532,6 +532,12 @@ class ClienteLeapmotor:
             ssl_=self._ssl_app,  # type: ignore[arg-type]
         )
         s.cert_sincronizzato = True
+
+    async def verifica_pin(self, vettura: Vettura, pin: str) -> None:
+        """Il PIN è quello giusto? Lo chiede al cloud senza comandare niente."""
+        s = self._sessione_o_errore()
+        await self._sincronizza_cert()
+        await self._verifica_pin(vettura, cripto.cifra_pin(pin, s.token))
 
     async def _verifica_pin(self, vettura: Vettura, pin_cifrato: str) -> None:
         try:

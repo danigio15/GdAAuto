@@ -26,10 +26,12 @@ from custom_components.gdaauto.const import (
     CONF_COMANDI_ATTIVI,
     CONF_DISPOSITIVO,
     CONF_FONTE,
+    CONF_INTERVALLO_IN_MOTO,
     CONF_MAPPA,
     CONF_MARCA,
     CONF_NOME,
     CONF_PIN,
+    CONF_RISPARMIO,
     DOMAIN,
     FONTE_CLOUD,
     FONTE_HA,
@@ -126,10 +128,19 @@ async def test_un_sensore_nasce_quando_arriva_il_suo_numero(hass: HomeAssistant,
 async def test_si_legge_spesso_solo_quando_serve(hass: HomeAssistant, cliente: FintoCliente) -> None:
     voce = await _installa(hass, _voce_cloud())
     t03, b10 = voce.runtime_data.auto
+    # Leggere il cloud Leapmotor non costa niente all'auto: anche chiusa e senza cavo, ogni minuto.
+    assert t03.update_interval == timedelta(minutes=1)
+    # In carica: ogni 15 secondi, perché GdAHome e gdanav la vedano salire.
+    assert b10.update_interval == timedelta(seconds=15)
+
+
+async def test_il_risparmio_si_accende_a_mano(hass: HomeAssistant, cliente: FintoCliente) -> None:
+    voce = await _installa(hass, _voce_cloud(**{CONF_RISPARMIO: True, CONF_INTERVALLO_IN_MOTO: 5}))
+    t03, b10 = voce.runtime_data.auto
     # Chiusa, ferma e senza cavo: si risparmia.
     assert t03.update_interval == timedelta(minutes=15)
-    # In carica: ogni minuto.
-    assert b10.update_interval == timedelta(seconds=60)
+    # Meno di 10 secondi non si scende, anche se le opzioni lo chiedono.
+    assert b10.update_interval == timedelta(seconds=10)
 
 
 async def test_aprire_da_lontano_e_spento_finche_non_lo_accendi(hass: HomeAssistant, cliente: FintoCliente) -> None:
@@ -348,12 +359,22 @@ async def test_configurare_leapmotor(hass: HomeAssistant, cliente: FintoCliente)
     assert r["errors"] == {"base": "credenziali"}
 
     cliente.password_giusta = True
-    r = await hass.config_entries.flow.async_configure(r["flow_id"], dati)
+    # Il PIN si chiede qui, e uno sbagliato si dice subito.
+    assert "pin" in {str(k) for k in r["data_schema"].schema}
+    r = await hass.config_entries.flow.async_configure(r["flow_id"], {**dati, "pin": "0000"})
+    assert r["errors"] == {"base": "pin"}
+
+    r = await hass.config_entries.flow.async_configure(r["flow_id"], {**dati, "pin": "1234"})
     await hass.async_block_till_done()
     assert r["type"] is FlowResultType.CREATE_ENTRY
     assert r["data"][CONF_MARCA] == "leapmotor"
     assert r["data"]["marchio_catalogo"] == "leapmotor"
     assert r["title"] == "Leapmotor · auto@esempio.it"
+    # Il PIN va nelle opzioni, dove si cambia poi; nei dati non resta.
+    assert "pin" not in r["data"]
+    assert r["result"].options == {CONF_PIN: "1234"}
+    await hass.services.async_call("lock", "lock", {"entity_id": "lock.bianchina_serratura"}, blocking=True)
+    assert ("chiudi", (T03_VIN,)) in cliente.chiamate
 
 
 async def test_le_opzioni_del_cloud(hass: HomeAssistant, cliente: FintoCliente) -> None:

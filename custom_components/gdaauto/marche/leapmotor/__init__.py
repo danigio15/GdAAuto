@@ -48,6 +48,7 @@ CAMPI = (
     Campo("password", segreto=True),
     Campo("cert_app", obbligatorio=False, lungo=True, carica=_FILE_ACCETTATI),
     Campo("chiave_app", obbligatorio=False, lungo=True, segreto=True, carica=_FILE_ACCETTATI),
+    Campo("pin", obbligatorio=False, segreto=True),
 )
 
 NOTA = {
@@ -55,19 +56,29 @@ NOTA = {
         "Usa un account Leapmotor **dedicato**, con l'auto condivisa dall'account principale: il cloud tiene "
         "una sessione sola per account, e con lo stesso account l'app sul telefono verrebbe disconnessa. "
         "Il certificato e la chiave dell'app puoi lasciarli vuoti: GdAAuto li scarica da sola dal repository "
-        "pubblico markoceri/leapmotor-certs. Se preferisci i tuoi, caricali (PEM, DER o .p12) o incollane il testo."
+        "pubblico markoceri/leapmotor-certs. Se preferisci i tuoi, caricali (PEM, DER o .p12) o incollane il testo. "
+        "Il **PIN** è quello dei comandi nell'app: serve per chiudere, aprire, clima e ricarica. Senza PIN "
+        "GdAAuto legge l'auto e non la comanda; puoi aggiungerlo dopo nelle opzioni."
     ),
     "en": (
         "Use a **dedicated** Leapmotor account with the car shared from your main account: the cloud keeps one "
         "session per account, and sharing it would log out the phone app. The Leapmotor app certificate and key "
         "can be left empty: GdAAuto downloads them from the public markoceri/leapmotor-certs repository. If you "
-        "prefer your own, upload them (PEM, DER or .p12) or paste their text."
+        "prefer your own, upload them (PEM, DER or .p12) or paste their text. The **PIN** is the one the app "
+        "asks for commands: it is needed to lock, unlock, climate and charging. Without it GdAAuto reads the car "
+        "but does not command it; you can add it later in the options."
     ),
 }
 
 # Il PIN per i comandi: lo chiede questa marca, non tutte.
 VUOLE_PIN = True
-INTERVALLO_MINUTI = 5
+# Leggere il cloud Leapmotor non sveglia l'auto e non la scarica: si può leggere spesso, così GdAHome e
+# gdanav vedono subito una ricarica che parte o un viaggio che comincia.
+INTERVALLO_MINUTI = 1
+INTERVALLO_IN_MOTO_SECONDI = 15
+INTERVALLO_MINIMO_SECONDI = 10
+#: Niente rallentamento da chiusa e senza cavo: non risparmia niente, e farebbe perdere l'inizio di un viaggio.
+RISPARMIO_PREDEFINITO = False
 
 
 def crea(sessione_http: aiohttp.ClientSession, dati: dict[str, Any], cartella: Path, lingua: str) -> ClienteLeapmotor:
@@ -147,10 +158,18 @@ async def prova_accesso(hass: HomeAssistant, dati: dict[str, Any]) -> Accesso:
     try:
         await cliente.accedi()
         vetture = await cliente.vetture()
+        if (pin := str(dati.get("pin") or "").strip()) and vetture:
+            # Un PIN sbagliato si dice adesso, non al primo comando.
+            await cliente.verifica_pin(vettura_con_pin(vetture), pin)
     finally:
         await hass.async_add_executor_job(shutil.rmtree, cartella, True)
     email = str(dati["email"]).strip()
     return Accesso(dati=dati, vetture=vetture, unique_id=f"{ID}_{email.lower()}", titolo=f"{NOME} · {email}")
+
+
+def vettura_con_pin(vetture: list[Any]) -> Any:
+    """Il PIN è dell'auto: si prova su una di quelle che accettano comandi, se c'è."""
+    return next((v for v in vetture if comandi_di(v) - {"destinazione"}), vetture[0])
 
 
 async def crea_da_voce(hass: HomeAssistant, entry: ConfigEntry, cartella: str) -> ClienteLeapmotor:
