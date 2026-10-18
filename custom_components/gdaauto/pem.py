@@ -37,25 +37,19 @@ def da_pkcs12(dati: bytes, password: str | None = None) -> tuple[str | None, str
         except (ValueError, TypeError):
             continue
         return (_cert_pem(cert) if cert else None, _chiave_pem(chiave) if chiave else None)
-    raise FormatoSconosciuto("PKCS#12 protetto da una password che non è quella data")
+    raise FormatoSconosciuto("non è un PEM, un DER né un PKCS#12 senza password")
 
 
 def in_pem(dati: bytes, tipo: str) -> str:
     """Un certificato o una chiave in PEM, da PEM, DER o PKCS#12."""
     if b"-----BEGIN" in dati:
-        try:
-            testo = dati.decode("ascii").strip()
-        except UnicodeDecodeError as err:
-            raise FormatoSconosciuto("PEM con caratteri non validi") from err
-        # Si controlla che si apra davvero, non solo che ne abbia l'aspetto.
+        # Si apre e si riscrive: resta un PEM pulito, senza le «Bag Attributes» che OpenSSL mette davanti.
         try:
             if tipo == CERTIFICATO:
-                x509.load_pem_x509_certificate(testo.encode())
-            else:
-                serialization.load_pem_private_key(testo.encode(), None)
+                return _cert_pem(x509.load_pem_x509_certificate(dati))
+            return _chiave_pem(serialization.load_pem_private_key(dati, None))
         except (ValueError, TypeError) as err:
             raise FormatoSconosciuto(f"PEM che non si apre: {err}") from err
-        return testo + "\n"
     try:
         if tipo == CERTIFICATO:
             return _cert_pem(x509.load_der_x509_certificate(dati))

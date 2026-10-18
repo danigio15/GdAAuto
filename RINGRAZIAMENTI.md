@@ -41,6 +41,16 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
+## markoceri/leapmotor-certs — il certificato dell'app
+
+<https://github.com/markoceri/leapmotor-certs>
+
+Tiene il certificato e la chiave dell'app Leapmotor, estratti dall'app e
+uguali per tutti. Non ha una licenza, e sono materiale di Leapmotor: GdAAuto
+non li contiene e non li ridistribuisce. Quando chi configura non dà i suoi,
+Home Assistant li scarica da lì, ne controlla nome, scadenza e chiave, e li
+salva nella configurazione di chi li ha chiesti.
+
 ## markoceri/leapmotor-api — documentazione
 
 <https://github.com/markoceri/leapmotor-api>

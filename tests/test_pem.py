@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterator
+from collections.abc import AsyncIterator, Iterator
 from contextlib import contextmanager
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
@@ -191,3 +191,98 @@ async def test_leapmotor_legge_anche_i_der_nella_cartella(hass: HomeAssistant) -
     (cartella / "app_key.pem").write_bytes(b"\x00 rotta")
     with pytest.raises(ErroreCertificato, match=r"app_key\.pem"):
         await hass.async_add_executor_job(_pem_da_file, hass, {})
+    for nome in ("app_cert.pem", "app_key.pem"):
+        (cartella / nome).unlink()
+
+
+# --- il certificato pubblico dell'app Leapmotor, scaricato ---------------------------------
+
+
+def _cert(nome: str = "LeapmotorAppCrtCN", giorni: int = 30, chiave: Any = CHIAVE_RSA) -> bytes:
+    soggetto = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, nome)])
+    return (
+        x509.CertificateBuilder()
+        .subject_name(soggetto)
+        .issuer_name(soggetto)
+        .public_key(chiave.public_key())
+        .serial_number(2)
+        .not_valid_before(datetime.now(UTC) - timedelta(days=60))
+        .not_valid_after(datetime.now(UTC) + timedelta(days=giorni))
+        .sign(chiave, hashes.SHA256())
+        .public_bytes(serialization.Encoding.PEM)
+    )
+
+
+@pytest.fixture
+async def repository(socket_enabled: None) -> AsyncIterator[dict[str, bytes]]:
+    """Il repository pubblico dei certificati, finto, su 127.0.0.1; con le «Bag Attributes» come quello vero."""
+    from aiohttp import web
+
+    file = {"app.crt": b"Bag Attributes\n    localKeyID: 99 29\n" + CERT_PEM, "app.key": CHIAVE_PEM}
+
+    async def servi(r: web.Request) -> web.Response:
+        if (contenuto := file.get(r.match_info["nome"])) is None:
+            return web.Response(status=404)
+        return web.Response(body=contenuto)
+
+    app = web.Application()
+    app.router.add_get("/{nome}", servi)
+    runner = web.AppRunner(app)
+    await runner.setup()
+    await web.TCPSite(runner, "127.0.0.1", 0).start()
+    url = f"http://127.0.0.1:{runner.addresses[0][1]}"
+    with (
+        patch("custom_components.gdaauto.marche.leapmotor.URL_CERT_PUBBLICO", f"{url}/app.crt"),
+        patch("custom_components.gdaauto.marche.leapmotor.URL_CHIAVE_PUBBLICA", f"{url}/app.key"),
+    ):
+        yield file
+    await runner.cleanup()
+
+
+async def test_il_certificato_pubblico_si_scarica_e_si_controlla(
+    hass: HomeAssistant, repository: dict[str, bytes]
+) -> None:
+    from custom_components.gdaauto.marche.leapmotor import scarica_pubblici
+
+    scaricati = await scarica_pubblici(hass)
+    assert scaricati["cert_app"].startswith("-----BEGIN CERTIFICATE-----")  # le «Bag Attributes» sono via
+    assert _e_lo_stesso_cert(scaricati["cert_app"]) and _e_la_stessa_chiave(scaricati["chiave_app"])
+
+    altra = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    for cert, motivo in (
+        (_cert(nome="Qualcun altro"), "non è quello dell'app"),
+        (_cert(giorni=-1), "scaduto"),
+        (_cert(chiave=altra), "non è quella del certificato"),
+        (b"<html>pagina</html>", "non si apre"),
+    ):
+        repository["app.crt"] = cert
+        with pytest.raises(ErroreCertificato, match=motivo):
+            await scarica_pubblici(hass)
+    repository.pop("app.crt")
+    with pytest.raises(ErroreCertificato, match="404"):
+        await scarica_pubblici(hass)
+
+
+async def test_leapmotor_senza_certificato_lo_scarica(hass: HomeAssistant, repository: dict[str, bytes]) -> None:
+    from custom_components.gdaauto.marche import leapmotor
+
+    entrati: list[dict[str, Any]] = []
+
+    class Cliente:
+        def __init__(self, dati: dict[str, Any]) -> None:
+            entrati.append(dati)
+
+        async def accedi(self) -> None:
+            return None
+
+        async def vetture(self) -> list[Any]:
+            return [AUTO]
+
+    with patch.object(leapmotor, "crea", lambda _s, dati, _c, _l: Cliente(dati)):
+        accesso = await leapmotor.prova_accesso(hass, {"email": "a@b.it", "password": "x"})
+        assert _e_lo_stesso_cert(accesso.dati["cert_app"]) and _e_la_stessa_chiave(accesso.dati["chiave_app"])
+        # Chi ha dato i suoi li tiene: non si scarica niente.
+        repository.clear()
+        mio = {"email": "a@b.it", "password": "x", "cert_app": "MIO", "chiave_app": "MIA"}
+        accesso = await leapmotor.prova_accesso(hass, mio)
+        assert (accesso.dati["cert_app"], accesso.dati["chiave_app"]) == ("MIO", "MIA")

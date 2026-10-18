@@ -34,6 +34,7 @@ from custom_components.gdaauto.const import (
     FONTE_CLOUD,
     FONTE_HA,
 )
+from custom_components.gdaauto.marche.errori import ErroreCertificato
 
 from .finto_cliente import FintoCliente
 from .test_segnali import C10, T03
@@ -333,7 +334,12 @@ async def test_configurare_leapmotor(hass: HomeAssistant, cliente: FintoCliente)
     assert r["description_placeholders"]["marchio"] == "Leapmotor"
     assert "dedicat" in r["description_placeholders"]["nota"]
     dati = {"email": "auto@esempio.it", "password": "x"}
-    r = await hass.config_entries.flow.async_configure(r["flow_id"], dati)
+    # Senza certificato si prova a scaricare quello pubblico; qui il repository non risponde.
+    with patch(
+        "custom_components.gdaauto.marche.leapmotor.scarica_pubblici",
+        side_effect=ErroreCertificato("non si scarica"),
+    ):
+        r = await hass.config_entries.flow.async_configure(r["flow_id"], dati)
     assert r["errors"] == {"base": "certificato"}
 
     dati |= {"cert_app": "CERT", "chiave_app": "CHIAVE"}

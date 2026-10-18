@@ -8,12 +8,16 @@ modello sconosciuto ripiega sul formato della C10.
 
 from __future__ import annotations
 
+from datetime import UTC, datetime
 from pathlib import Path
 import shutil
 from typing import Any
 import uuid
 
 import aiohttp
+from cryptography import x509
+from cryptography.hazmat.primitives import serialization
+from cryptography.x509.oid import NameOID
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
@@ -27,6 +31,14 @@ from .cliente import BASE_URL, ID, NOME, ClienteLeapmotor, comandi_di
 CARTELLA_PEM = "gdaauto"
 
 ACCESSO = ACCESSO_CAMPI
+
+CERT_APP, CHIAVE_APP = "cert_app", "chiave_app"
+#: Il certificato dell'app è uguale per tutti: se chi configura non lo dà, si scarica da qui.
+#: GdAAuto non lo contiene: è di Leapmotor, estratto dall'app, e non ha una licenza per ridistribuirlo.
+URL_CERT_PUBBLICO = "https://raw.githubusercontent.com/markoceri/leapmotor-certs/main/app.crt"
+URL_CHIAVE_PUBBLICA = "https://raw.githubusercontent.com/markoceri/leapmotor-certs/main/app.key"
+#: Il nome nel certificato dell'app: quello scaricato deve averlo.
+CN_APP = "LeapmotorAppCrtCN"
 
 #: PEM, DER o PKCS#12: GdAAuto li converte da sola.
 _FILE_ACCETTATI = ".pem,.crt,.cer,.cert,.der,.key,.p12,.pfx"
@@ -42,14 +54,14 @@ NOTA = {
     "it": (
         "Usa un account Leapmotor **dedicato**, con l'auto condivisa dall'account principale: il cloud tiene "
         "una sessione sola per account, e con lo stesso account l'app sul telefono verrebbe disconnessa. "
-        "Il certificato e la chiave dell'app Leapmotor non sono in GdAAuto: caricali dal dispositivo (PEM, DER "
-        "o .p12), incollane il testo, oppure mettili come `app_cert.pem` e `app_key.pem` in `/config/gdaauto`."
+        "Il certificato e la chiave dell'app puoi lasciarli vuoti: GdAAuto li scarica da sola dal repository "
+        "pubblico markoceri/leapmotor-certs. Se preferisci i tuoi, caricali (PEM, DER o .p12) o incollane il testo."
     ),
     "en": (
         "Use a **dedicated** Leapmotor account with the car shared from your main account: the cloud keeps one "
         "session per account, and sharing it would log out the phone app. The Leapmotor app certificate and key "
-        "are not shipped with GdAAuto: upload them from your device (PEM, DER or .p12), paste their text, or put "
-        "them as `app_cert.pem` and `app_key.pem` in `/config/gdaauto`."
+        "can be left empty: GdAAuto downloads them from the public markoceri/leapmotor-certs repository. If you "
+        "prefer your own, upload them (PEM, DER or .p12) or paste their text."
     ),
 }
 
@@ -83,11 +95,53 @@ def _pem_da_file(hass: HomeAssistant, dati: dict[str, Any]) -> dict[str, Any]:
     return dati
 
 
+def controlla_pubblici(cert_pem: str, chiave_pem: str) -> None:
+    """Il certificato scaricato è quello dell'app Leapmotor, valido, e la chiave è la sua."""
+    cert = x509.load_pem_x509_certificate(cert_pem.encode())
+    chiave = serialization.load_pem_private_key(chiave_pem.encode(), None)
+    nomi = [a.value for a in cert.subject.get_attributes_for_oid(NameOID.COMMON_NAME)]
+    if nomi != [CN_APP]:
+        raise ErroreCertificato(f"Il certificato scaricato non è quello dell'app Leapmotor ({nomi})")
+    if cert.not_valid_after_utc < datetime.now(UTC):
+        raise ErroreCertificato(f"Il certificato pubblico dell'app è scaduto il {cert.not_valid_after_utc:%d/%m/%Y}")
+    if chiave.public_key().public_numbers() != cert.public_key().public_numbers():  # type: ignore[union-attr]
+        raise ErroreCertificato("La chiave scaricata non è quella del certificato")
+
+
+async def scarica_pubblici(hass: HomeAssistant) -> dict[str, str]:
+    """Il certificato e la chiave dell'app, uguali per tutti, dal repository pubblico che li tiene.
+
+    GdAAuto non li contiene: li scarica qui, una volta, e li salva nella configurazione.
+    """
+    sessione = async_get_clientsession(hass)
+    scaricati: dict[str, str] = {}
+    try:
+        for campo, url in ((CERT_APP, URL_CERT_PUBBLICO), (CHIAVE_APP, URL_CHIAVE_PUBBLICA)):
+            async with sessione.get(url, timeout=aiohttp.ClientTimeout(total=20)) as r:
+                if r.status != 200:
+                    raise ErroreCertificato(f"{url} risponde HTTP {r.status}")
+                scaricati[campo] = in_pem(await r.read(), tipo_di(campo))
+        controlla_pubblici(scaricati[CERT_APP], scaricati[CHIAVE_APP])
+    except (aiohttp.ClientError, TimeoutError) as err:
+        raise ErroreCertificato(f"Il certificato pubblico dell'app non si scarica: {err}") from err
+    except (FormatoSconosciuto, ValueError) as err:
+        raise ErroreCertificato(f"Il certificato pubblico dell'app non si apre: {err}") from err
+    return scaricati
+
+
+def _mancano(dati: dict[str, Any]) -> bool:
+    return not (dati.get(CERT_APP) or "").strip() or not (dati.get(CHIAVE_APP) or "").strip()
+
+
 async def prova_accesso(hass: HomeAssistant, dati: dict[str, Any]) -> Accesso:
-    """Entra davvero, in una cartella di prova che poi si butta."""
+    """Entra davvero, in una cartella di prova che poi si butta.
+
+    Il certificato dell'app viene, in quest'ordine, da quello che ha dato chi
+    configura, da /config/gdaauto, o dal repository pubblico.
+    """
     dati = await hass.async_add_executor_job(_pem_da_file, hass, dict(dati))
-    if not (dati.get("cert_app") or "").strip() or not (dati.get("chiave_app") or "").strip():
-        raise ErroreCertificato("Servono il certificato e la chiave dell'app Leapmotor")
+    if _mancano(dati):
+        dati.update(await scarica_pubblici(hass))
     cartella = Path(hass.config.path(".storage", "gdaauto", f"prova-{uuid.uuid4().hex}"))
     cliente = crea(async_get_clientsession(hass), dati, cartella, hass.config.language)
     try:
