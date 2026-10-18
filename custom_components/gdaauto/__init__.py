@@ -193,6 +193,10 @@ def chiavi_da_redigere() -> set[str]:
         "access_token",
         "refresh_token",
         "proxy",
+        "client_id",
+        "client_secret",
+        "api_key",
+        "codice",
     }
 
 

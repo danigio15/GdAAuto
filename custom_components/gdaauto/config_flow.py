@@ -528,10 +528,10 @@ class GdaautoOptionsFlow(OptionsFlow):
             predefinito = getattr(modulo, "INTERVALLO_MINUTI", INTERVALLO_PREDEFINITO)
             in_moto = getattr(modulo, "INTERVALLO_IN_MOTO_SECONDI", INTERVALLO_IN_MOTO_PREDEFINITO)
             campi[vol.Required(CONF_INTERVALLO, default=predefinito)] = selector.NumberSelector(
-                selector.NumberSelectorConfig(min=1, max=60, step=1, unit_of_measurement="min")
+                selector.NumberSelectorConfig(min=1, max=180, step=1, unit_of_measurement="min")
             )
             campi[vol.Required(CONF_INTERVALLO_IN_MOTO, default=in_moto)] = selector.NumberSelector(
-                selector.NumberSelectorConfig(min=30, max=600, step=10, unit_of_measurement="s")
+                selector.NumberSelectorConfig(min=30, max=3600, step=10, unit_of_measurement="s")
             )
             campi[vol.Required(CONF_RISPARMIO, default=True)] = selector.BooleanSelector()
         if comandi:

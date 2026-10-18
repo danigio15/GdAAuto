@@ -255,6 +255,22 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
+## BMW CarData — la documentazione ufficiale
+
+BMW CarData è l'API ufficiale e gratuita di BMW per i propri clienti: il
+cliente di GdAAuto è scritto da capo sulla sua documentazione (guida, swagger
+«Customer API v1» e «Device Code Flow»). Per capire come si comporta davvero
+si sono letti, senza prenderne codice né tabelle:
+
+- JustChr/BavarianData (MIT, © 2026 Chris Krammer and contributors):
+  indirizzi, scope, l'intestazione `x-version`, l'attesa dopo `access_denied`,
+  il rischio di un container con troppi descrittori, e quali descrittori e
+  unità usano le auto vere;
+- kvanbiesen/bmw-cardata-ha (BSD 2-Clause, © 2025 Kris Van Biesen; alcuni
+  file © 2025 Renaud Allard): la copia della documentazione BMW, i codici di
+  errore CU-xxx, il limite di 50 chiamate al giorno e la forma delle risposte;
+- JjyKsi/bmw-cardata-ha (pubblico dominio): solo consultato.
+
 ## Tesla — la documentazione ufficiale
 
 La Fleet API è documentata da Tesla su <https://developer.tesla.com/docs/fleet-api>.
