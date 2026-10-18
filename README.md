@@ -93,7 +93,7 @@ ogni 30 secondi.
 ## Installare
 
 1. **HACS** → i tre puntini → **Repository personalizzati**: incolla
-   `https://github.com/danigio15/gdaauto`, categoria **Integrazione**.
+   `https://github.com/danigio15/GdAAuto`, categoria **Integrazione**.
 2. Cerca **GdAAuto**, installalo e **riavvia** Home Assistant.
 3. **Impostazioni → Dispositivi e servizi → Aggiungi integrazione → GdAAuto**,
    e scegli da dove arriva l'auto.
