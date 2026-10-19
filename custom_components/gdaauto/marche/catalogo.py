@@ -87,7 +87,14 @@ MARCHI: tuple[Marchio, ...] = (
         "Kia Uvo / Hyundai Bluelink (HACS)",
         "https://github.com/Hyundai-Kia-Connect/kia_uvo",
     ),
-    Marchio("honda", "Honda", ha=_NESSUNA),
+    Marchio(
+        "honda",
+        "Honda",
+        "honda",
+        {},
+        "My Honda+ (HACS)",
+        "https://github.com/enricobattocchi/myhondaplus-homeassistant",
+    ),
     Marchio(
         "hyundai",
         "Hyundai",
@@ -140,7 +147,7 @@ MARCHI: tuple[Marchio, ...] = (
     ),
     Marchio("lotus", "Lotus", ha=_NESSUNA),
     Marchio("lucid", "Lucid", ha="Lucid Motors (HACS)", link=HACS),
-    Marchio("lynk_co", "Lynk & Co", ha=_NESSUNA),
+    Marchio("lynk_co", "Lynk & Co", "lynk_co", {}, "Lynk & Co (HACS)", "https://github.com/b12e/ha_lynkco_2025"),
     Marchio("maserati", "Maserati", "uconnect", {"marchio": "maserati"}, _U, _U_LINK),
     Marchio("mazda", "Mazda", ha=_NESSUNA),
     Marchio(
@@ -190,7 +197,7 @@ MARCHI: tuple[Marchio, ...] = (
     ),
     Marchio("porsche", "Porsche", "porsche", {}, "Porsche Connect (HACS)", "https://github.com/CJNE/ha-porscheconnect"),
     Marchio("renault", "Renault", "renault", {"marchio": "renault"}, "Renault", HA + "renault"),
-    Marchio("rivian", "Rivian", ha="Rivian (HACS)", link="https://github.com/bretterer/home-assistant-rivian"),
+    Marchio("rivian", "Rivian", "rivian", {}, "Rivian (HACS)", "https://github.com/bretterer/home-assistant-rivian"),
     Marchio("seat", "Seat", ha=_VW),
     Marchio(
         "skoda",
@@ -198,7 +205,14 @@ MARCHI: tuple[Marchio, ...] = (
         ha="MyŠkoda, o l'integrazione ufficiale Škoda di Home Assistant",
         link="https://github.com/skodaconnect/homeassistant-myskoda",
     ),
-    Marchio("smart", "smart", ha="Hello smart (HACS) per #1 e #3; Mercedes-Benz (mbapi2020) per le EQ", link=HACS),
+    Marchio(
+        "smart",
+        "smart",
+        "smart",
+        {},
+        "Hello smart (SmartHashtag, HACS) per #1, #3 e #5; Mercedes-Benz (mbapi2020) per le EQ",
+        "https://github.com/DasBasti/SmartHashtag",
+    ),
     Marchio("subaru", "Subaru", ha="Subaru (solo Stati Uniti)", link=HA + "subaru"),
     Marchio("tesla", "Tesla", "tesla", {}, "Tesla Fleet", HA + "tesla_fleet"),
     Marchio(
