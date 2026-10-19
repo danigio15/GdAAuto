@@ -12,7 +12,7 @@ from aiohttp import web
 import pytest
 
 from custom_components.gdaauto.marche.leapmotor import comandi_di, crea, cripto
-from custom_components.gdaauto.marche.leapmotor.errori import ErroreCertificato, ErroreCredenziali, ErrorePin
+from custom_components.gdaauto.marche.leapmotor.errori import ErroreApi, ErroreCertificato, ErroreCredenziali, ErrorePin
 from custom_components.gdaauto.vettura import StatoRicarica
 
 from .finto_cloud import FintoCloud
@@ -120,6 +120,24 @@ async def test_se_il_rinnovo_non_va_si_rientra_da_capo(cloud, tmp_path: Path) ->
         (t03, _) = await c.vetture()
         assert (await c.stato(t03)).batteria == 85
     assert finto.login == 2
+
+
+async def test_se_il_cloud_chiude_la_sessione_si_rientra_da_capo(cloud, tmp_path: Path) -> None:
+    """La sessione chiusa senza dire «token» (l'app aperta sul telefono): prima restava in errore per sempre."""
+    finto, url = cloud
+    finto.sessione_chiusa_alla = 2
+    async with aiohttp.ClientSession() as s:
+        c = _cliente(finto, url, s, tmp_path)
+        (t03, _) = await c.vetture()
+        await c.stato(t03)
+        assert (await c.stato(t03)).batteria == 85
+        assert finto.login == 2
+        # Un errore che un login nuovo non risolve: non si rientra a ogni lettura.
+        finto._chiusa_al_login = None
+        finto.sessione_chiusa_alla = 1
+        with pytest.raises(ErroreApi):
+            await c.stato(t03)
+        assert finto.login == 2
 
 
 async def test_password_sbagliata(cloud, tmp_path: Path) -> None:

@@ -41,6 +41,8 @@ BASE_URL = "https://appgateway.leapmotor-international.de"
 _PREFISSO = "/carownerservice/oversea"
 #: Consumi, energia di oggi, ricariche: cambiano piano, basta rileggerli ogni mezz'ora.
 _STORICO_OGNI_S = 1800
+#: Un rientro da capo per un errore che non è «token scaduto», al massimo ogni tanto.
+_RIENTRO_OGNI_S = 300
 _TIMEOUT = aiohttp.ClientTimeout(total=30)
 
 # Il modello nel segmento dell'indirizzo dello stato. Le B usano quello della
@@ -199,6 +201,7 @@ class ClienteLeapmotor:
         #: VIN → (i campi dello storico, quando si sono letti)
         self._storici: dict[str, tuple[dict[str, Any], float]] = {}
         self._serratura = asyncio.Lock()
+        self._ultimo_rientro = -float(_RIENTRO_OGNI_S)
 
     # --- i certificati --------------------------------------------------
 
@@ -401,21 +404,36 @@ class ClienteLeapmotor:
     async def _con_sessione(self, azione: Any) -> Any:
         """Esegue ``azione()``; se il token è scaduto lo rinnova, e se non si
         può rientra da capo. Una richiesta alla volta: il cloud vuole un solo
-        passo per sessione."""
+        passo per sessione.
+
+        Il cloud non dice sempre «token scaduto»: quando chiude la sessione
+        (l'app aperta sul telefono con lo stesso account, una sessione vecchia)
+        risponde con altri codici. Allora si rientra da capo anche per un errore
+        qualunque, ma non più di una volta ogni cinque minuti, per non tempestare
+        il login quando l'errore è un altro."""
         async with self._serratura:
             if self.sessione is None:
                 await self.accedi()
             try:
                 return await azione()
             except ErroreApi as err:
-                if not err.token_scaduto:
+                if err.token_scaduto:
+                    _LOGGER.debug("Token scaduto: si rinnova")
+                    try:
+                        await self.rinnova_token()
+                    except (ErroreApi, ErroreCredenziali):
+                        await self._rientra()
+                elif time.monotonic() - self._ultimo_rientro >= _RIENTRO_OGNI_S:
+                    _LOGGER.info("Il cloud Leapmotor rifiuta la richiesta (%s): si rientra da capo", err)
+                    await self._rientra()
+                else:
                     raise
-                _LOGGER.debug("Token scaduto: si rinnova")
-                try:
-                    await self.rinnova_token()
-                except (ErroreApi, ErroreCredenziali):
-                    await self.accedi()
                 return await azione()
+
+    async def _rientra(self) -> None:
+        self._ultimo_rientro = time.monotonic()
+        self.sessione = None
+        await self.accedi()
 
     # --- leggere ----------------------------------------------------------
 

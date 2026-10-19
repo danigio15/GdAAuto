@@ -75,6 +75,8 @@ class FintoCloud:
     vetture: list[dict[str, Any]] = field(default_factory=list)
     percorsi_che_non_esistono: set[str] = field(default_factory=set)
     token_scade_alla: int | None = None
+    #: alla n-esima lettura dello stato il cloud chiude la sessione, senza dire «token»
+    sessione_chiusa_alla: int | None = None
     rinnovo_rotto: bool = False
     esiti_prima_del_si: int = 1
     chiamate: list[str] = field(default_factory=list)
@@ -120,6 +122,7 @@ class FintoCloud:
         self.token = token(0)
         self.refresh = "refresh-0"
         self._richieste_stato = 0
+        self._chiusa_al_login: int | None = None
 
     # --- il server ------------------------------------------------------
 
@@ -189,6 +192,14 @@ class FintoCloud:
                 return web.Response(status=404, text="<html>404 Not Found</html>")
             self._firma_standard(h, {"vin": corpo["vin"]})
             self._richieste_stato += 1
+            if self.sessione_chiusa_alla and self._richieste_stato >= self.sessione_chiusa_alla:
+                # Come quando si entra dall'app del telefono: la sessione di prima non vale più,
+                # e un rinnovo non basta: serve un login nuovo.
+                if self._chiusa_al_login is None:
+                    self._chiusa_al_login = self.login
+                    self.refresh = "chiuso"
+                if self.login == self._chiusa_al_login:
+                    return self._risposta(code=10001, message="用户未登录 (user not logged in)")
             if self.token_scade_alla and self._richieste_stato == self.token_scade_alla:
                 self.token = "scaduto-" + self.token
                 return self._risposta(code=401, message="token expired")
