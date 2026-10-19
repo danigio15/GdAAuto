@@ -742,6 +742,43 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ```
 
+## BYD — jkaberg/pyBYD e TA2k/ioBroker.byd, licenza MIT
+
+<https://github.com/jkaberg/pyBYD> · <https://github.com/TA2k/ioBroker.byd>
+
+Da pyBYD: gli indirizzi del cloud «overseas» per paese, il login JSON, la
+busta cifrata (l'algoritmo dell'AES a scatola bianca, riscritto in
+`marche/byd/busta.py`, e il formato del file delle tabelle), i modelli dei
+dati e i comandi. Da ioBroker.byd: la forma di alcune risposte e i nomi dei
+campi. Il codice di GdAAuto (`marche/byd/`) è scritto da capo. Le tabelle
+`bangcle_tables.bin` non sono in GdAAuto: si scaricano al primo avvio dal
+repository di pyBYD, a un commit fisso e con l'impronta controllata.
+
+```
+MIT License
+
+Copyright (c) 2026 Joel Kåberg
+Copyright (c) 2026 TA2k
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
 ## Tesla — la documentazione ufficiale
 
 La Fleet API è documentata da Tesla su <https://developer.tesla.com/docs/fleet-api>.

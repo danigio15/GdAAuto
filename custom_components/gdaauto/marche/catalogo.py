@@ -52,12 +52,12 @@ MARCHI: tuple[Marchio, ...] = (
         "https://github.com/JustChr/BavarianData",
     ),
     Marchio(
-        # BYD non è nativa: il suo cloud si apre solo con tabelle estratte
-        # dall'app, che nessuno può ridistribuire. Si passa dalla comunità.
         "byd",
         "BYD",
-        ha="BYD Vehicle (hass-byd-vehicle, HACS)",
-        link="https://github.com/jkaberg/hass-byd-vehicle",
+        "byd",
+        {},
+        "BYD Vehicle (hass-byd-vehicle, HACS)",
+        "https://github.com/jkaberg/hass-byd-vehicle",
     ),
     Marchio(
         "citroen",
