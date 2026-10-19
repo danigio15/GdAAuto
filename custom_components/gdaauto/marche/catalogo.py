@@ -213,7 +213,7 @@ MARCHI: tuple[Marchio, ...] = (
         "Hello smart (SmartHashtag, HACS) per #1, #3 e #5; Mercedes-Benz (mbapi2020) per le EQ",
         "https://github.com/DasBasti/SmartHashtag",
     ),
-    Marchio("subaru", "Subaru", ha="Subaru (solo Stati Uniti)", link=HA + "subaru"),
+    Marchio("subaru", "Subaru", "subaru", {}, "Subaru (solo Stati Uniti)", HA + "subaru"),
     Marchio("tesla", "Tesla", "tesla", {}, "Tesla Fleet", HA + "tesla_fleet"),
     Marchio(
         "toyota",

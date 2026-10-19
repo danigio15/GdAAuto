@@ -926,6 +926,37 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
+## Subaru — G-Two/subarulink e l'integrazione Subaru di Home Assistant (Apache 2.0)
+
+<https://github.com/G-Two/subarulink> ·
+<https://github.com/home-assistant/core/tree/dev/homeassistant/components/subaru>
+
+Da subarulink (Apache License 2.0, copyright degli autori di subarulink):
+gli indirizzi di MySubaru per Stati Uniti e Canada, il login con la
+registrazione del dispositivo e il codice di verifica, `validateSession`,
+`selectVehicle`, le letture e i comandi con il PIN, il cambio di versione
+delle strade e il significato dei campi. Dall'integrazione `subaru` di Home
+Assistant (Apache License 2.0, copyright degli autori di Home Assistant): le
+unità e gli intervalli. Il codice di GdAAuto (`marche/subaru/`) è scritto da
+capo.
+
+```
+Copyright gli autori di G-Two/subarulink
+Copyright Home Assistant authors
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+```
+
 ## Tesla — la documentazione ufficiale
 
 La Fleet API è documentata da Tesla su <https://developer.tesla.com/docs/fleet-api>.
