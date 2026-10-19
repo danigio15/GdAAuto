@@ -199,6 +199,9 @@ class FintoCloud:
             self.letture_consumo += 1
             if self.consumo is None:
                 return self._risposta(code=1, message="no data")
+            if self.consumo == "":
+                # Un'auto nuova, senza ancora una classifica.
+                return self._risposta({"rankResult": None, "weeklyEC": []})
             return self._risposta({"rankResult": {"hundredKmEC": self.consumo, "rank": "40%"}, "weeklyEC": []})
 
         if resto == "drivingRecord/v1/getLastweekEC":

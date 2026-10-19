@@ -19,6 +19,7 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import timedelta
 import logging
+import time
 from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
@@ -53,6 +54,7 @@ from .const import (
     INTERVALLO_PREDEFINITO,
     INTERVALLO_RISPARMIO,
     RILEGGI_DOPO_COMANDO,
+    TENUTA_DATI,
 )
 from .marche.errori import ErroreCertificato, ErroreComando, ErroreCredenziali, ErroreMarca, ErrorePin
 from .vettura import MemoriaEmisfero, StatoRicarica, StatoVettura, Vettura
@@ -139,6 +141,7 @@ class AutoCloud(Auto):
         self.conto = conto
         self._modulo = modulo
         self._annulla_rilettura: Callable[[], None] | None = None
+        self._ultima_buona: float | None = None
 
     @property
     def comandi_possibili(self) -> set[str]:
@@ -149,12 +152,26 @@ class AutoCloud(Auto):
             stato = await self.conto.cliente.stato(self.vettura)
         except (ErroreCredenziali, ErroreCertificato) as err:
             raise ConfigEntryAuthFailed(str(err)) from err
-        except ErroreMarca as err:
-            raise UpdateFailed(str(err)) from err
+        except Exception as err:
+            # Un intoppo del cloud non spegne le entità: si tengono i dati di
+            # prima per un po', e solo se dura diventano «non disponibili».
+            if self._tieni_i_dati():
+                _LOGGER.warning("%s: lettura non riuscita, restano i dati di prima: %s", self.vettura.titolo, err)
+                return self.data
+            if isinstance(err, ErroreMarca):
+                raise UpdateFailed(str(err)) from err
+            raise
+        self._ultima_buona = time.monotonic()
         self.conto.emisfero.correggi(self.vettura.vin, stato)
         self.vettura.stato = stato
         self.update_interval = self._ritmo(stato)
         return stato
+
+    def _tieni_i_dati(self) -> bool:
+        if self.data is None or self._ultima_buona is None:
+            return False
+        tenuta = max(TENUTA_DATI, 2 * self._normale)
+        return time.monotonic() - self._ultima_buona < tenuta.total_seconds()
 
     def _ritmo(self, s: StatoVettura) -> timedelta:
         """Spesso quando succede qualcosa, piano quando l'auto dorme."""

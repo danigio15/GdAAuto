@@ -482,7 +482,7 @@ class ClienteLeapmotor:
                 if err.token_scaduto:
                     raise
                 _LOGGER.debug("%s della %s non letto: %s", leggi.__name__, vettura.modello, err)
-            except (ErroreRete, KeyError, TypeError, ValueError) as err:
+            except Exception as err:  # lo storico non deve mai fermare lo stato
                 _LOGGER.debug("%s della %s non letto: %s", leggi.__name__, vettura.modello, err)
         self._storici[vettura.vin] = (campi, time.monotonic())
         return campi
@@ -496,7 +496,8 @@ class ClienteLeapmotor:
             corpo=_forma({"carvin": vettura.vin}),
             ssl_=self._ssl_account,  # type: ignore[arg-type]
         )
-        valore = _kwh((r.get("data") or {}).get("rankResult", {}).get("hundredKmEC"))
+        classifica = (r.get("data") or {}).get("rankResult") or {}
+        valore = _kwh(classifica.get("hundredKmEC")) if isinstance(classifica, dict) else None
         return {"consumo_medio_kwh_100km": valore if valore and 0 < valore < 100 else None}
 
     async def _energia_di_oggi(self, vettura: Vettura) -> dict[str, Any]:

@@ -19,6 +19,8 @@ class FintoCliente:
     password_giusta: bool = True
     chiamate: list[tuple[str, tuple[Any, ...]]] = field(default_factory=list)
     letture: int = 0
+    #: se c'è, la lettura dello stato lo solleva (un intoppo del cloud)
+    guasto: Exception | None = None
 
     async def accedi(self) -> None:
         if not self.password_giusta:
@@ -30,6 +32,8 @@ class FintoCliente:
 
     async def stato(self, v: Vettura) -> StatoVettura:
         self.letture += 1
+        if self.guasto is not None:
+            raise self.guasto
         dati = dict(self.stati[v.vin])
         if isinstance(dati.get("signal"), dict):
             # Come il cloud vero quando l'auto è sveglia: l'ultimo dato è di adesso.

@@ -232,6 +232,19 @@ async def test_senza_consumo_lo_stato_arriva_lo_stesso(cloud, tmp_path: Path) ->
     assert st.consumo_medio_kwh_100km is None
 
 
+async def test_senza_classifica_dei_consumi_lo_stato_arriva_lo_stesso(cloud, tmp_path: Path) -> None:
+    """Una B10 nuova: il cloud risponde «rankResult»: null. Prima questo fermava ogni lettura."""
+    finto, url = cloud
+    finto.consumo = ""
+    async with aiohttp.ClientSession() as s:
+        c = _cliente(finto, url, s, tmp_path)
+        _t03, b10 = await c.vetture()
+        st = await c.stato(b10)
+    assert st.batteria == 65
+    assert st.consumo_medio_kwh_100km is None
+    assert st.km_7_giorni == 60.5
+
+
 async def test_lo_storico_energia_di_oggi_settimana_e_ultima_ricarica(cloud, tmp_path: Path) -> None:
     finto, url = cloud
     async with aiohttp.ClientSession() as s:

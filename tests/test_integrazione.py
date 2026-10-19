@@ -36,7 +36,7 @@ from custom_components.gdaauto.const import (
     FONTE_CLOUD,
     FONTE_HA,
 )
-from custom_components.gdaauto.marche.errori import ErroreCertificato
+from custom_components.gdaauto.marche.errori import ErroreCertificato, ErroreRete
 
 from .finto_cliente import FintoCliente
 from .test_segnali import C10, T03
@@ -113,6 +113,32 @@ async def test_le_auto_del_cloud_hanno_le_entita_di_gdaauto(hass: HomeAssistant,
     voce = dr.async_get(hass).async_get_device(identifiers={(DOMAIN, T03_VIN)})
     assert voce is not None
     assert (voce.manufacturer, voce.model, voce.name) == ("Leapmotor", "T03", "Bianchina")
+
+
+async def test_un_intoppo_del_cloud_non_spegne_le_entita(hass: HomeAssistant, cliente: FintoCliente) -> None:
+    voce = await _installa(hass, _voce_cloud())
+    auto = voce.runtime_data.auto[1]
+    # Il cloud non risponde: restano i dati di prima, non «non disponibile».
+    cliente.guasto = ErroreRete("il cloud non risponde")
+    await auto.async_refresh()
+    await hass.async_block_till_done()
+    assert hass.states.get("sensor.grande_batteria").state == "65"
+    # Anche un errore che il codice non si aspetta (una risposta strana).
+    cliente.guasto = AttributeError("'NoneType' object has no attribute 'get'")
+    await auto.async_refresh()
+    await hass.async_block_till_done()
+    assert hass.states.get("sensor.grande_batteria").state == "65"
+    # Se dura troppo, i dati non sono più buoni.
+    auto._ultima_buona -= 3600
+    cliente.guasto = ErroreRete("il cloud non risponde")
+    await auto.async_refresh()
+    await hass.async_block_till_done()
+    assert hass.states.get("sensor.grande_batteria").state == "unavailable"
+    # Torna il cloud, tornano i dati.
+    cliente.guasto = None
+    await auto.async_refresh()
+    await hass.async_block_till_done()
+    assert hass.states.get("sensor.grande_batteria").state == "65"
 
 
 async def test_un_sensore_nasce_quando_arriva_il_suo_numero(hass: HomeAssistant, cliente: FintoCliente) -> None:
