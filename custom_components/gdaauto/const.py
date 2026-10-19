@@ -30,6 +30,8 @@ INTERVALLO_IN_MOTO_PREDEFINITO = 60  # secondi, in marcia o in carica
 INTERVALLO_RISPARMIO = timedelta(minutes=15)  # chiusa, ferma, senza cavo
 #: Dopo una lettura andata male si tengono i dati di prima per questo tempo (almeno due giri).
 TENUTA_DATI = timedelta(minutes=15)
+#: Un rifiuto delle credenziali chiede di rientrare solo se dura questo tempo.
+RIFIUTO_DA_CREDERE = timedelta(minutes=30)
 INTERVALLO_MINIMO = timedelta(seconds=30)
 AGGIORNA_A_MANO_OGNI = timedelta(seconds=30)
 

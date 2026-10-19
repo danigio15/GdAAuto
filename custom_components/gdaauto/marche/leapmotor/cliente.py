@@ -202,6 +202,7 @@ class ClienteLeapmotor:
         self._storici: dict[str, tuple[dict[str, Any], float]] = {}
         self._serratura = asyncio.Lock()
         self._ultimo_rientro = -float(_RIENTRO_OGNI_S)
+        self._login_rifiutato = 0.0
 
     # --- i certificati --------------------------------------------------
 
@@ -413,7 +414,7 @@ class ClienteLeapmotor:
         il login quando l'errore è un altro."""
         async with self._serratura:
             if self.sessione is None:
-                await self.accedi()
+                await self._entra()
             try:
                 return await azione()
             except ErroreApi as err:
@@ -433,7 +434,18 @@ class ClienteLeapmotor:
     async def _rientra(self) -> None:
         self._ultimo_rientro = time.monotonic()
         self.sessione = None
-        await self.accedi()
+        await self._entra()
+
+    async def _entra(self) -> None:
+        """Il login, ma non di nuovo subito dopo un rifiuto: tanti login rifiutati bloccano l'account."""
+        if self._login_rifiutato and time.monotonic() - self._login_rifiutato < _RIENTRO_OGNI_S:
+            raise ErroreRete("Il cloud Leapmotor ha rifiutato il login da poco: si riprova fra qualche minuto")
+        try:
+            await self.accedi()
+        except ErroreCredenziali:
+            self._login_rifiutato = time.monotonic()
+            raise
+        self._login_rifiutato = 0.0
 
     # --- leggere ----------------------------------------------------------
 

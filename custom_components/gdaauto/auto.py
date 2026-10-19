@@ -53,6 +53,7 @@ from .const import (
     INTERVALLO_MINIMO,
     INTERVALLO_PREDEFINITO,
     INTERVALLO_RISPARMIO,
+    RIFIUTO_DA_CREDERE,
     RILEGGI_DOPO_COMANDO,
     TENUTA_DATI,
 )
@@ -142,6 +143,9 @@ class AutoCloud(Auto):
         self._modulo = modulo
         self._annulla_rilettura: Callable[[], None] | None = None
         self._ultima_buona: float | None = None
+        self._primo_rifiuto: float | None = None
+        #: l'ultima lettura andata male (quando e perché), per la diagnostica
+        self.ultimo_errore: str | None = None
 
     @property
     def comandi_possibili(self) -> set[str]:
@@ -151,8 +155,23 @@ class AutoCloud(Auto):
         try:
             stato = await self.conto.cliente.stato(self.vettura)
         except (ErroreCredenziali, ErroreCertificato) as err:
+            # Dopo un errore di credenziali Home Assistant non rilegge più finché
+            # non si rientra: per un rifiuto passeggero (il cloud che respinge un
+            # login per un momento) le entità resterebbero spente per sempre. Si
+            # chiede di rientrare solo se il rifiuto dura.
+            adesso = time.monotonic()
+            self.ultimo_errore = f"{dt_util.now().isoformat(timespec='seconds')} {err!r}"
+            if self._ultima_buona is not None:
+                if self._primo_rifiuto is None:
+                    self._primo_rifiuto = adesso
+                if adesso - self._primo_rifiuto < RIFIUTO_DA_CREDERE.total_seconds():
+                    _LOGGER.warning("%s: il cloud rifiuta l'accesso, si riprova: %s", self.vettura.titolo, err)
+                    if self._tieni_i_dati():
+                        return self.data
+                    raise UpdateFailed(str(err)) from err
             raise ConfigEntryAuthFailed(str(err)) from err
         except Exception as err:
+            self.ultimo_errore = f"{dt_util.now().isoformat(timespec='seconds')} {err!r}"
             # Un intoppo del cloud non spegne le entità: si tengono i dati di
             # prima per un po', e solo se dura diventano «non disponibili».
             if self._tieni_i_dati():
@@ -162,6 +181,7 @@ class AutoCloud(Auto):
                 raise UpdateFailed(str(err)) from err
             raise
         self._ultima_buona = time.monotonic()
+        self._primo_rifiuto = None
         self.conto.emisfero.correggi(self.vettura.vin, stato)
         self.vettura.stato = stato
         self.update_interval = self._ritmo(stato)

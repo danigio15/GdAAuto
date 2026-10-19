@@ -36,7 +36,7 @@ from custom_components.gdaauto.const import (
     FONTE_CLOUD,
     FONTE_HA,
 )
-from custom_components.gdaauto.marche.errori import ErroreCertificato, ErroreRete
+from custom_components.gdaauto.marche.errori import ErroreCertificato, ErroreCredenziali, ErroreRete
 
 from .finto_cliente import FintoCliente
 from .test_segnali import C10, T03
@@ -139,6 +139,31 @@ async def test_un_intoppo_del_cloud_non_spegne_le_entita(hass: HomeAssistant, cl
     await auto.async_refresh()
     await hass.async_block_till_done()
     assert hass.states.get("sensor.grande_batteria").state == "65"
+
+
+async def test_un_rifiuto_passeggero_delle_credenziali_non_ferma_le_letture(
+    hass: HomeAssistant, cliente: FintoCliente
+) -> None:
+    """Dopo un errore di credenziali HA non rilegge più: un login respinto per un momento spegneva tutto."""
+    voce = await _installa(hass, _voce_cloud())
+    auto = voce.runtime_data.auto[1]
+    cliente.guasto = ErroreCredenziali("login respinto per un momento")
+    await auto.async_refresh()
+    await hass.async_block_till_done()
+    assert hass.states.get("sensor.grande_batteria").state == "65"
+    assert not hass.config_entries.flow.async_progress_by_handler(DOMAIN)
+    assert "login respinto" in auto.ultimo_errore
+    # Si continua a leggere: torna il cloud, tornano i dati, e il conto riparte.
+    cliente.guasto = None
+    await auto.async_refresh()
+    assert auto._primo_rifiuto is None
+    # Un rifiuto che dura mezz'ora chiede davvero di rientrare.
+    cliente.guasto = ErroreCredenziali("password cambiata")
+    await auto.async_refresh()
+    auto._primo_rifiuto -= 3600
+    await auto.async_refresh()
+    await hass.async_block_till_done()
+    assert [f["context"]["source"] for f in hass.config_entries.flow.async_progress_by_handler(DOMAIN)] == ["reauth"]
 
 
 async def test_un_sensore_nasce_quando_arriva_il_suo_numero(hass: HomeAssistant, cliente: FintoCliente) -> None:

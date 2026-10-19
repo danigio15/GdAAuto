@@ -12,8 +12,14 @@ from aiohttp import web
 import pytest
 
 from custom_components.gdaauto.marche.leapmotor import comandi_di, crea, cripto
-from custom_components.gdaauto.marche.leapmotor.errori import ErroreApi, ErroreCertificato, ErroreCredenziali, ErrorePin
-from custom_components.gdaauto.vettura import StatoRicarica
+from custom_components.gdaauto.marche.leapmotor.errori import (
+    ErroreApi,
+    ErroreCertificato,
+    ErroreCredenziali,
+    ErrorePin,
+    ErroreRete,
+)
+from custom_components.gdaauto.vettura import StatoRicarica, Vettura
 
 from .finto_cloud import FintoCloud
 from .test_segnali import C10, T03
@@ -138,6 +144,19 @@ async def test_se_il_cloud_chiude_la_sessione_si_rientra_da_capo(cloud, tmp_path
         with pytest.raises(ErroreApi):
             await c.stato(t03)
         assert finto.login == 2
+
+
+async def test_dopo_un_login_rifiutato_non_si_riprova_subito(cloud, tmp_path: Path) -> None:
+    """Tanti login rifiutati di fila bloccano l'account: dopo un rifiuto si aspetta."""
+    finto, url = cloud
+    async with aiohttp.ClientSession() as s:
+        c = _cliente(finto, url, s, tmp_path, password="sbagliata")
+        t03 = Vettura("T", "leapmotor", "T03")
+        with pytest.raises(ErroreCredenziali):
+            await c.stato(t03)
+        with pytest.raises(ErroreRete):
+            await c.stato(t03)
+    assert finto.chiamate.count("acct/v1/login") == 1
 
 
 async def test_password_sbagliata(cloud, tmp_path: Path) -> None:

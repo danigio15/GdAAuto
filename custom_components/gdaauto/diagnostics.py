@@ -58,6 +58,7 @@ async def async_get_config_entry_diagnostics(_hass: HomeAssistant, entry: Gdaaut
                 "comandi": sorted(a.comandi),
                 "intervallo": str(a.update_interval) if a.update_interval else None,
                 "ultimo_esito": a.last_update_success,
+                "ultimo_errore": getattr(a, "ultimo_errore", None),
                 "stato": _togli(stato) if stato else None,
             }
         )
