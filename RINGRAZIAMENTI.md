@@ -603,6 +603,145 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ```
 
+## Volkswagen — tillsteinbach/CarConnectivity-connector-volkswagen, licenza MIT
+
+<https://github.com/tillsteinbach/CarConnectivity-connector-volkswagen> ·
+<https://github.com/tillsteinbach/CarConnectivity>
+
+Da CarConnectivity e dal suo connettore Volkswagen: gli indirizzi del BFF
+CARIAD e del login identity.vwgroup.io, il client id dell'app, lo scope,
+l'indirizzo di ritorno `weconnect://authenticated`, lo User-Agent, il rinnovo
+dei token su `/login/v1/idk/token`, i percorsi di `vehicles`,
+`selectivestatus`, `parkingposition`, dei comandi e dell'S-PIN, i nomi dei
+campi dello stato e i corpi dei comandi. Il codice di GdAAuto
+(`marche/volkswagen/`) è scritto da capo per aiohttp. robinostlund/
+volkswagencarnet (GPL-3.0) è stato guardato solo per alcuni nomi di campi e
+per il percorso dei viaggi; nessun codice copiato.
+
+```
+MIT License
+
+Copyright (c) 2021 Till Steinbach
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
+## Audi — audiconnect/audi_connect_ha e acfischer42/CarConnectivity-connector-audi, licenza MIT
+
+<https://github.com/audiconnect/audi_connect_ha> ·
+<https://github.com/acfischer42/CarConnectivity-connector-audi>
+
+Da audi_connect_ha: il client id e l'indirizzo di ritorno dell'app myAudi, gli
+scope, gli indirizzi dell'IDK e del BFF di CARIAD, i lavori di
+`selectivestatus` e i nomi dei campi, i corpi del clima e della ricarica,
+`pendingrequests`, il token MBB e `tripstatistics`, la chiave HMAC
+dell'intestazione `X-QMAuth`, il login col codice del dispositivo per Europa e
+Canada e la classificazione dei rifiuti del rinnovo; nelle prove, la forma
+dei dati di una Q8 e-tron. Dal connettore Audi di CarConnectivity: `vehicles`
+con le capacità, `access/lock|unlock` con l'S-PIN, `honkandflash`,
+`parkingposition`, le temperature in kelvin, `readiness` e gli stati della
+ricarica. Il codice di GdAAuto (`marche/audi/`) è scritto da capo.
+
+```
+MIT License
+
+Copyright (c) 2019 Arjen van Rhijn @arjenvrh
+Copyright (c) 2025 Achim Fischer
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
+## Nissan — dan-r/HomeAssistant-NissanConnect (MIT) e filcole/pycarwings2 (Apache 2.0)
+
+<https://github.com/dan-r/HomeAssistant-NissanConnect> · <https://github.com/filcole/pycarwings2>
+
+Da HomeAssistant-NissanConnect (MIT; alcune parti ri-licenziate da
+Apache-2.0 col permesso di @mitchellrj e @Tobiaswk): gli indirizzi del login
+WSO2 e di Kamereon (car-adapter, user-adapter, bff-web), il client id
+pubblico dell'app, lo scope, l'indirizzo di ritorno e i parametri di
+`authorize`, lo scambio verso i token Kamereon e il loro rinnovo, i numeri
+dei servizi, i percorsi delle letture e dei comandi, i nomi dei campi; nelle
+prove, la forma dei dati dei suoi test. Da pycarwings2 (Apache License 2.0,
+<http://www.apache.org/licenses/LICENSE-2.0>): l'indirizzo del vecchio cloud
+NissanConnect EV, la stringa `initial_app_str`, la cifratura Blowfish della
+password con `baseprm`, le pagine e i loro parametri, il significato dei
+campi. Il codice di GdAAuto (`marche/nissan/`) è scritto da capo; il
+riempimento della cifratura è fatto sui byte invece che sui caratteri.
+L'integrazione `nissan_leaf` di Home Assistant (Apache-2.0) è stata guardata
+solo per le regioni e gli intervalli.
+
+```
+MIT License
+
+Copyright (c) 2024 Daniel Raper
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
+```
+Copyright 2016 Jason Horne
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+```
+
 ## Tesla — la documentazione ufficiale
 
 La Fleet API è documentata da Tesla su <https://developer.tesla.com/docs/fleet-api>.

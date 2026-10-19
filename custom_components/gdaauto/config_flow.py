@@ -158,6 +158,12 @@ async def _con_i_file(hass: HomeAssistant, campi: tuple[Campo, ...], dati: dict[
     return dati
 
 
+def _accesso_di(modulo: Any, dati: dict[str, Any]) -> str:
+    """Come si entra: per alcune marche dipende dai campi (Audi per regione, Nissan per cloud)."""
+    scegli = getattr(modulo, "accesso_per", None)
+    return scegli(dati) if scegli else modulo.ACCESSO
+
+
 class FileIllegibile(Exception):
     """Il file caricato non c'è più, è vuoto, o non è testo."""
 
@@ -281,11 +287,12 @@ class GdaautoConfigFlow(config_entry_oauth2_flow.AbstractOAuth2FlowHandler, doma
             dati = {**self._dati, **{k: v for k, v in user_input.items() if v not in (None, "")}}
             try:
                 dati = await _con_i_file(self.hass, modulo.CAMPI, dati)
-                if modulo.ACCESSO == ACCESSO_DISPOSITIVO:
+                accesso_scelto = _accesso_di(modulo, dati)
+                if accesso_scelto == ACCESSO_DISPOSITIVO:
                     self._dati = dati
                     self._dispositivo_login = await modulo.avvia_dispositivo(self.hass, dati)
                     return await self.async_step_conferma_dispositivo()
-                if modulo.ACCESSO == ACCESSO_CODICE_BROWSER:
+                if accesso_scelto == ACCESSO_CODICE_BROWSER:
                     self._dati = dati
                     return await self._apri_il_browser()
                 accesso = await modulo.prova_accesso(self.hass, dati)
@@ -356,6 +363,10 @@ class GdaautoConfigFlow(config_entry_oauth2_flow.AbstractOAuth2FlowHandler, doma
         modulo = self._modulo()
         if modulo.ACCESSO == ACCESSO_OAUTH_HA:
             return await self.async_step_reauth_tesla()
+        if hasattr(modulo, "accesso_per"):
+            # L'accesso dipende dai campi (la regione…): si ripassa dalle credenziali.
+            self._dati = dict(dati)
+            return await self.async_step_credenziali()
         if modulo.ACCESSO == ACCESSO_CODICE_BROWSER and hasattr(modulo, "avvia_browser"):
             self._dati = dict(dati)
             return await self._apri_il_browser()

@@ -41,7 +41,7 @@ MARCHI: tuple[Marchio, ...] = (
     Marchio("alfa_romeo", "Alfa Romeo", "uconnect", {"marchio": "alfaromeo"}, _U, _U_LINK),
     Marchio("alpine", "Alpine", "renault", {"marchio": "alpine"}, "Renault", HA + "renault"),
     Marchio(
-        "audi", "Audi", ha="Audi Connect (audiconnect, HACS)", link="https://github.com/audiconnect/audi_connect_ha"
+        "audi", "Audi", "audi", {}, "Audi Connect (audiconnect, HACS)", "https://github.com/audiconnect/audi_connect_ha"
     ),
     Marchio(
         "bmw",
@@ -164,6 +164,8 @@ MARCHI: tuple[Marchio, ...] = (
     Marchio(
         "nissan",
         "Nissan",
+        "nissan",
+        {},
         ha="Nissan Connect (HACS); per le Leaf prima del 2019 l'integrazione Nissan Leaf",
         link=HA + "nissan_leaf",
     ),
@@ -215,7 +217,14 @@ MARCHI: tuple[Marchio, ...] = (
         "Stellantis Vehicles (HACS)",
         "https://github.com/andreadegiovine/homeassistant-stellantis-vehicles",
     ),
-    Marchio("volkswagen", "Volkswagen", ha=_VW),
+    Marchio(
+        "volkswagen",
+        "Volkswagen",
+        "volkswagen",
+        {},
+        "Volkswagen Connect (volkswagencarnet, HACS)",
+        "https://github.com/robinostlund/homeassistant-volkswagencarnet",
+    ),
     Marchio("volvo", "Volvo", "volvo", {}, "Volvo (integrazione ufficiale di Home Assistant)", HA + "volvo"),
     Marchio("xpeng", "Xpeng", ha=_NESSUNA),
     Marchio("zeekr", "Zeekr", ha=_NESSUNA),
