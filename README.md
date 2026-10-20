@@ -31,9 +31,6 @@ strada:
 - **Il marchio è nativo**: GdAAuto parla direttamente col cloud del
   costruttore, e chiede quello che serve a quella marca (email e password,
   un codice da confermare sul sito, l'accesso col browser…).
-- **Il marchio non è nativo**: GdAAuto dice quale integrazione di Home
-  Assistant installare, con il link. Quando l'auto c'è, GdAAuto la legge da
-  lì e le dà la stessa faccia delle altre.
 - **Il marchio non è in elenco**: scegli «Un'altra marca» e prendi l'auto
   da qualunque integrazione già presente in Home Assistant.
 
@@ -44,7 +41,7 @@ costruttore, senza abbonamenti in più. L'unica eccezione è Tesla, vedi sotto.
 
 | Marchio | Si entra con | Legge | Comanda |
 | --- | --- | :---: | --- |
-| **Leapmotor** (T03, B05, B10, C10, C16) | account condiviso + certificato dell'app | ✓ | chiudi e apri, clima, ricarica, limite, trova, destinazione (col PIN dell'auto) |
+| **Leapmotor** (T03, B05, B10, C10, C16) | account condiviso; il certificato dell'app si scarica da solo | ✓ | chiudi e apri, clima, ricarica, limite, trova, destinazione (col PIN dell'auto) |
 | **Tesla** | app sviluppatore Tesla (Fleet API) | ✓ | chiudi e apri, clima, ricarica, limite, trova, destinazione |
 | **Peugeot, Citroën, DS, Opel, Vauxhall** | login nel browser, codice incollato | ✓ | nessuno, per ora |
 | **Fiat, Abarth, Jeep, Alfa Romeo, Lancia, Maserati** | email e password dell'app (Uconnect) | ✓ | chiudi e apri, clima, ricarica, trova (col PIN dell'app) |
@@ -55,51 +52,63 @@ costruttore, senza abbonamenti in più. L'unica eccezione è Tesla, vedi sotto.
 | **Toyota, Lexus** | email e password di MyToyota / Lexus Link+ | ✓ | chiudi e apri, clima (secondo l'auto) |
 | **MG** | email e password di un account secondario | ✓ | chiudi e apri, clima, ricarica, limite, trova |
 | **Polestar** | Polestar ID | ✓ | nessuno: Polestar non li apre a terzi |
+| **Volkswagen** (ID.3/4/5/7, ID.Buzz, e-Golf, e-up!, plug-in) | login nel browser, indirizzo finale incollato | ✓ | chiudi e apri (S-PIN), clima, ricarica, limite, trova |
+| **Audi** (e-tron, TFSI e) | codice da confermare (Europa, Canada) o login nel browser (Stati Uniti) | ✓ | chiudi e apri (S-PIN), clima, ricarica, limite, trova |
+| **Škoda** (Enyaq, Elroq, plug-in iV) | login nel browser, indirizzo finale incollato | ✓ | chiudi e apri (S-PIN), clima, ricarica, limite, trova |
+| **Seat, Cupra** (Born, Tavascan, Raval, e-HYBRID) | login nel browser, indirizzo finale incollato | ✓ | chiudi e apri (S-PIN), clima, ricarica, limite, trova, destinazione |
+| **Porsche** (Taycan, Macan Electric, E-Hybrid) | login nel browser, indirizzo finale incollato | ✓ | chiudi e apri (PIN), clima, ricarica, limite, trova |
+| **Volvo** (EX30, EX40, EX90, plug-in) | applicazione sviluppatore Volvo, poi login nel browser | ✓ | chiudi e apri, clima, trova |
+| **Ford** (Mustang Mach-E, Explorer, Capri, Puma Gen-E, plug-in) | login nel browser, indirizzo finale incollato | ✓ | chiudi e apri, clima, ricarica, limite, trova |
+| **Jaguar, Land Rover** | email e password di InControl | ✓ | chiudi e apri, clima, ricarica, limite, trova (secondo l'abbonamento) |
+| **Nissan** (Ariya, Leaf, Micra) | login nel browser; email e password per le Leaf 2011-2019 | ✓ | clima, ricarica, trova (secondo l'auto) |
+| **BYD** | email e password di un account dedicato; i dati dell'app si scaricano da soli | ✓ | chiudi e apri, clima, ricarica, trova (col PIN) |
+| **smart** (#1, #3, #5) | login nel browser, indirizzo finale incollato | ✓ | chiudi e apri, clima, ricarica, limite, trova, destinazione |
+| **Lynk & Co** (01, 02, 08) | login nel browser, indirizzo finale incollato | ✓ | chiudi e apri, clima, ricarica, limite, trova |
+| **Zeekr** (001, 7X, X) | email e password + le chiavi dell'app | ✓ | chiudi e apri, clima, ricarica, limite, luci, destinazione |
+| **Honda** (e, e:Ny1, e:HEV) | email e password; la prima volta il link per email | ✓ | chiudi e apri, clima, ricarica, limite, trova (secondo l'auto) |
+| **Mazda 6e** | email e password; la prima volta il codice per email | ✓ | chiudi e apri (PIN), clima, limite, trova |
+| **NIO** (ET5, ET7, EL6, EL7, EL8) | applicazione personale NIO, poi login nel browser | ✓ | nessuno: l'API ufficiale è solo lettura |
+| **Xpeng** (G6, G9, P7) | applicazione Enode, poi collegamento dell'account | ✓ | avvio e arresto della ricarica |
+| **Rivian** (R1T, R1S, R2) | email e password, codice per SMS | ✓ | chiudi e apri, clima, ricarica, limite, trova (con la chiave di un telefono abbinato) |
+| **Subaru** (Stati Uniti, Canada) | email e password, codice di verifica la prima volta | ✓ | chiudi e apri, clima, ricarica, trova (col PIN) |
 
 Un comando compare solo se la tua auto lo accetta: GdAAuto lo chiede al cloud,
-o lo sa dal modello.
+o lo sa dal modello. Nessuna di queste marche vede la tua password quando il
+login è «nel browser»: entri sul sito del costruttore e incolli l'indirizzo
+dove finisci.
 
 **Quanto spesso legge**, se non scegli tu nelle opzioni:
 
 | Marchio | Da ferma | In marcia o in carica |
 | --- | --- | --- |
 | Leapmotor | 1 min | 15 s |
-| Tesla, Polestar | 10 min | 2 min |
-| Kia, Hyundai, Genesis, Mercedes, Renault, Uconnect | 10 min | 5 min |
+| BYD, Ford | 5 min | 1 min |
 | Stellantis | 5 min | 1 min |
+| Volvo, Rivian, smart, Zeekr, Mazda 6e, NIO | 5 min | 2 min |
+| Subaru, Xpeng | 5 min | 3 min |
+| Tesla, Polestar | 10 min | 2 min |
+| Volkswagen | 10 min | 3 min |
+| Kia, Hyundai, Genesis, Mercedes, Renault, Uconnect, Jaguar, Land Rover, Nissan, Honda, Seat, Cupra | 10 min | 5 min |
+| Lynk & Co | 15 min | 2 min |
+| Audi, Škoda, Porsche | 15 min | 5 min |
 | Toyota | 15 min | 10 min |
 | MG | 30 min | 5 min |
 | BMW | 30 min | 30 min (50 letture al giorno per account) |
 
-## I marchi da Home Assistant
+## I marchi che GdAAuto non può leggere
 
-| Marchio | Integrazione da installare |
-| --- | --- |
-| **BYD** | [hass-byd-vehicle](https://github.com/jkaberg/hass-byd-vehicle) (HACS) |
-| **Volkswagen, Audi, Cupra, Seat** | l'integrazione del gruppo per la tua marca ([Audi Connect](https://github.com/audiconnect/audi_connect_ha) per Audi) |
-| **Škoda** | [MyŠkoda](https://github.com/skodaconnect/homeassistant-myskoda), o l'integrazione ufficiale |
-| **Volvo** | [Volvo](https://www.home-assistant.io/integrations/volvo), ufficiale |
-| **Ford** | [FordPass](https://github.com/itchannel/fordpass-ha) (HACS) |
-| **Nissan** | Nissan Connect (HACS); [Nissan Leaf](https://www.home-assistant.io/integrations/nissan_leaf) per le Leaf prima del 2019 |
-| **Porsche** | [Porsche Connect](https://github.com/CJNE/ha-porscheconnect) (HACS) |
-| **Jaguar, Land Rover** | [JLR InControl](https://github.com/msp1974/homeassistant-jlrincontrol) (HACS) |
-| **Rivian** | [Rivian](https://github.com/bretterer/home-assistant-rivian) (HACS) |
-| **smart** | Hello smart (HACS) per #1 e #3; Mercedes-Benz per le EQ |
-| **Lucid, Subaru** | le loro integrazioni (Subaru solo negli Stati Uniti) |
+- **Aiways**: il cloud dell'app è spento e non esiste un'API documentata.
+- **Lotus**: il login del cloud vuole un captcha, e le chiavi dell'app sono
+  pubblicate solo in un progetto che non ne permette l'uso.
+- **Lucid**: non ancora.
+- **Mazda di MyMazda** (MX-30, CX-60, CX-80): il cloud vuole una protezione
+  anti-bot che GdAAuto non aggira. La Mazda 6e invece è nativa.
 
-**Perché BYD non è nativa.** Il cloud BYD cifra ogni richiesta con tabelle
-estratte dall'app, che nessuno ha il diritto di ridistribuire. GdAAuto non le
-copia: passa dall'integrazione della comunità, che l'utente installa da sé.
-
-**Aiways, Honda, Lotus, Lynk & Co, Mazda, NIO, Xpeng e Zeekr** non hanno
-ancora un'API che si possa usare. Se un giorno nasce un'integrazione per
-Home Assistant, GdAAuto la legge con «Un'altra marca».
-
-Con la strada di Home Assistant GdAAuto guarda le entità del dispositivo
-dell'auto e **propone da solo** quale è la batteria, quale l'autonomia, quale
-la serratura. Tu controlli e confermi. I comandi passano per le entità vere
-dell'auto: chiudere usa la sua serratura, il clima il suo clima, il limite di
-ricarica il suo cursore.
+Per un'auto qualunque che ha già un'integrazione in Home Assistant c'è
+«Un'altra marca»: GdAAuto guarda le entità del dispositivo dell'auto e
+**propone da solo** quale è la batteria, quale l'autonomia, quale la
+serratura. Tu controlli e confermi. I comandi passano per le entità vere
+dell'auto.
 
 ## Cosa c'è nel dispositivo
 
