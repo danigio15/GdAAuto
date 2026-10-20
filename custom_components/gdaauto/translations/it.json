@@ -177,7 +177,6 @@
     "marchio": {
       "options": {
         "abarth": "Abarth",
-        "aiways": "Aiways",
         "alfa_romeo": "Alfa Romeo",
         "alpine": "Alpine",
         "audi": "Audi",
@@ -199,8 +198,6 @@
         "land_rover": "Land Rover",
         "leapmotor": "Leapmotor",
         "lexus": "Lexus",
-        "lotus": "Lotus",
-        "lucid": "Lucid",
         "lynk_co": "Lynk & Co",
         "maserati": "Maserati",
         "mazda": "Mazda",

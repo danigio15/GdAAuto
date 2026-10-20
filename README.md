@@ -95,14 +95,10 @@ dove finisci.
 | MG | 30 min | 5 min |
 | BMW | 30 min | 30 min (50 letture al giorno per account) |
 
-## I marchi che GdAAuto non può leggere
+## Le altre auto
 
-- **Aiways**: il cloud dell'app è spento e non esiste un'API documentata.
-- **Lotus**: il login del cloud vuole un captcha, e le chiavi dell'app sono
-  pubblicate solo in un progetto che non ne permette l'uso.
-- **Lucid**: non ancora.
-- **Mazda di MyMazda** (MX-30, CX-60, CX-80): il cloud vuole una protezione
-  anti-bot che GdAAuto non aggira. La Mazda 6e invece è nativa.
+Le Mazda di MyMazda (MX-30, CX-60, CX-80) non si leggono: il loro cloud vuole
+una protezione anti-bot che GdAAuto non aggira. La Mazda 6e invece è nativa.
 
 Per un'auto qualunque che ha già un'integrazione in Home Assistant c'è
 «Un'altra marca»: GdAAuto guarda le entità del dispositivo dell'auto e

@@ -15,7 +15,6 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
-HACS = "https://hacs.xyz"
 HA = "https://www.home-assistant.io/integrations/"
 
 
@@ -34,11 +33,9 @@ _U = "Uconnect (hass-uconnect, HACS)"
 _U_LINK = "https://github.com/hass-uconnect/hass-uconnect"
 _VW = "PyCupra (HACS)"
 _VW_LINK = "https://github.com/WulfgarW/homeassistant-pycupra"
-_NESSUNA = "nessuna, per ora: il costruttore non ha un'API aperta"
 
 MARCHI: tuple[Marchio, ...] = (
     Marchio("abarth", "Abarth", "uconnect", {"marchio": "fiat"}, _U, _U_LINK),
-    Marchio("aiways", "Aiways", ha=_NESSUNA),
     Marchio("alfa_romeo", "Alfa Romeo", "uconnect", {"marchio": "alfaromeo"}, _U, _U_LINK),
     Marchio("alpine", "Alpine", "renault", {"marchio": "alpine"}, "Renault", HA + "renault"),
     Marchio(
@@ -146,8 +143,6 @@ MARCHI: tuple[Marchio, ...] = (
         "Toyota (ha_toyota, HACS)",
         "https://github.com/pytoyoda/ha_toyota",
     ),
-    Marchio("lotus", "Lotus", ha=_NESSUNA),
-    Marchio("lucid", "Lucid", ha="Lucid Motors (HACS)", link=HACS),
     Marchio("lynk_co", "Lynk & Co", "lynk_co", {}, "Lynk & Co (HACS)", "https://github.com/b12e/ha_lynkco_2025"),
     Marchio("maserati", "Maserati", "uconnect", {"marchio": "maserati"}, _U, _U_LINK),
     Marchio(
