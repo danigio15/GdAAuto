@@ -249,7 +249,7 @@ MARCHI: tuple[Marchio, ...] = (
     ),
     Marchio("volvo", "Volvo", "volvo", {}, "Volvo (integrazione ufficiale di Home Assistant)", HA + "volvo"),
     Marchio("xpeng", "Xpeng", ha=_NESSUNA),
-    Marchio("zeekr", "Zeekr", ha=_NESSUNA),
+    Marchio("zeekr", "Zeekr", "zeekr", {}, "Zeekr EV (HACS)", "https://github.com/Fryyyyy/zeekr_homeassistant"),
 )
 
 PER_ID: dict[str, Marchio] = {m.id: m for m in MARCHI}

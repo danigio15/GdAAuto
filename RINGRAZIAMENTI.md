@@ -1013,6 +1013,48 @@ di runDMCA e fano0001 (Apache 2.0) sono state solo lette, per capire perché le
 Mazda di MyMazda non si possono coprire senza aggirare la protezione
 anti-bot del loro cloud.
 
+## Zeekr — Fryyyyy/zeekr_ev_api, Fryyyyy/zeekr_homeassistant e borconi/OpenZeekr, licenza MIT
+
+<https://github.com/Fryyyyy/zeekr_ev_api> · <https://github.com/Fryyyyy/zeekr_homeassistant> ·
+<https://github.com/borconi/openzeekr>
+
+Da zeekr_ev_api e zeekr_homeassistant: il login JSON dell'app, gli indirizzi,
+i due algoritmi di firma, le intestazioni e le costanti fisse dell'app
+(client-id, app-code, codice tenant, identità del dispositivo), la tabella
+paese → regione, il significato dei campi e i corpi dei comandi. Da
+OpenZeekr: gli host europei, il corpo con le chiavi ordinate, i codici della
+ricarica e della connessione, la soglia trifase e la potenza in continua,
+l'ordine del limite di ricarica, il corpo della destinazione, i codici
+`079012`/`079021`/`079025`. Il codice di GdAAuto (`marche/zeekr/`) è scritto
+da capo. Le chiavi dell'app non sono in GdAAuto: le incolla l'utente (per
+esempio dal file di Wysie/zeekr_key_extractor, MIT, citato solo come
+strumento).
+
+```
+MIT License
+
+Copyright (c) 2025 Fryyyyy
+Copyright (c) 2026 borconi
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
 ## Tesla — la documentazione ufficiale
 
 La Fleet API è documentata da Tesla su <https://developer.tesla.com/docs/fleet-api>.
