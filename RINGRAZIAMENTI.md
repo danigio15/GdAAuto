@@ -996,6 +996,23 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
+## Mazda 6e — fano0001/home-assistant-mazda-6e (Apache 2.0)
+
+<https://github.com/fano0001/home-assistant-mazda-6e>
+
+Da home-assistant-mazda-6e (Apache License 2.0,
+<http://www.apache.org/licenses/LICENSE-2.0>, copyright degli autori del
+progetto; contiene anche parti MIT, Copyright (c) 2026 Deepal Alternative
+contributors): gli indirizzi del cloud della Mazda 6e, le intestazioni, i
+campi e i codici dello stato, il login con la verifica per email, il rinnovo,
+la cifratura RSA delle credenziali e la firma dei comandi. Il codice di
+GdAAuto (`marche/mazda/`) è scritto da capo; la chiave pubblica del cloud non
+è in GdAAuto: si scarica al primo avvio da quel repository, a un commit fisso
+e con l'impronta controllata. ungineer/pymazda (MIT) e le integrazioni Mazda
+di runDMCA e fano0001 (Apache 2.0) sono state solo lette, per capire perché le
+Mazda di MyMazda non si possono coprire senza aggirare la protezione
+anti-bot del loro cloud.
+
 ## Tesla — la documentazione ufficiale
 
 La Fleet API è documentata da Tesla su <https://developer.tesla.com/docs/fleet-api>.

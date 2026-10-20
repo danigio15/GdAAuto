@@ -150,7 +150,14 @@ MARCHI: tuple[Marchio, ...] = (
     Marchio("lucid", "Lucid", ha="Lucid Motors (HACS)", link=HACS),
     Marchio("lynk_co", "Lynk & Co", "lynk_co", {}, "Lynk & Co (HACS)", "https://github.com/b12e/ha_lynkco_2025"),
     Marchio("maserati", "Maserati", "uconnect", {"marchio": "maserati"}, _U, _U_LINK),
-    Marchio("mazda", "Mazda", ha=_NESSUNA),
+    Marchio(
+        "mazda",
+        "Mazda",
+        "mazda",
+        {},
+        "Mazda 6e (HACS); per MyMazda l'integrazione Mazda della comunità",
+        "https://github.com/fano0001/home-assistant-mazda-6e",
+    ),
     Marchio(
         "mercedes",
         "Mercedes-Benz",
