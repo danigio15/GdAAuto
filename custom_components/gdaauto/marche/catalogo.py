@@ -32,7 +32,8 @@ class Marchio:
 
 _U = "Uconnect (hass-uconnect, HACS)"
 _U_LINK = "https://github.com/hass-uconnect/hass-uconnect"
-_VW = "l'integrazione del gruppo Volkswagen per la tua marca (HACS), o il portale EU Data Act"
+_VW = "PyCupra (HACS)"
+_VW_LINK = "https://github.com/WulfgarW/homeassistant-pycupra"
 _NESSUNA = "nessuna, per ora: il costruttore non ha un'API aperta"
 
 MARCHI: tuple[Marchio, ...] = (
@@ -67,7 +68,7 @@ MARCHI: tuple[Marchio, ...] = (
         "Stellantis Vehicles (HACS)",
         "https://github.com/andreadegiovine/homeassistant-stellantis-vehicles",
     ),
-    Marchio("cupra", "Cupra", ha=_VW),
+    Marchio("cupra", "Cupra", "seat_cupra", {"marchio": "cupra"}, _VW, _VW_LINK),
     Marchio("dacia", "Dacia", "renault", {"marchio": "dacia"}, "Renault", HA + "renault"),
     Marchio(
         "ds",
@@ -198,7 +199,7 @@ MARCHI: tuple[Marchio, ...] = (
     Marchio("porsche", "Porsche", "porsche", {}, "Porsche Connect (HACS)", "https://github.com/CJNE/ha-porscheconnect"),
     Marchio("renault", "Renault", "renault", {"marchio": "renault"}, "Renault", HA + "renault"),
     Marchio("rivian", "Rivian", "rivian", {}, "Rivian (HACS)", "https://github.com/bretterer/home-assistant-rivian"),
-    Marchio("seat", "Seat", ha=_VW),
+    Marchio("seat", "Seat", "seat_cupra", {"marchio": "seat"}, _VW, _VW_LINK),
     Marchio(
         "skoda",
         "Škoda",

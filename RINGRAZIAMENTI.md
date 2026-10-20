@@ -957,6 +957,45 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ```
 
+## Seat e Cupra — CarConnectivity-connector-seatcupra (MIT) e WulfgarW/pycupra (Apache 2.0)
+
+<https://github.com/tillsteinbach/CarConnectivity-connector-seatcupra> · <https://github.com/WulfgarW/pycupra>
+
+Dal connettore Seat/Cupra di CarConnectivity: gli indirizzi del cloud OLA, i
+nomi dei campi (stato, mycar, ricarica, clima, autonomie, capacità), i
+comandi con l'S-PIN e il SecToken, le costanti dell'app (client id e segreto
+pubblico dell'app CUPRA) e la forma delle risposte usate nelle prove. Da
+pycupra (Apache License 2.0, <http://www.apache.org/licenses/LICENSE-2.0>,
+copyright degli autori di pycupra): client id, scope, indirizzi di ritorno,
+versioni e User-Agent delle app SEAT e CUPRA, il punto dei token di OLA,
+`charging/info` e il limite di ricarica, clacson e luci, la destinazione,
+`driving-data` e il riconoscimento del blocco App Check. Il codice di GdAAuto
+(`marche/seat_cupra/`) è scritto da capo.
+
+```
+MIT License
+
+Copyright (c) 2021 Till Steinbach
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
 ## Tesla — la documentazione ufficiale
 
 La Fleet API è documentata da Tesla su <https://developer.tesla.com/docs/fleet-api>.
