@@ -175,7 +175,14 @@ MARCHI: tuple[Marchio, ...] = (
         "BMW CarData (BavarianData, HACS)",
         "https://github.com/JustChr/BavarianData",
     ),
-    Marchio("nio", "NIO", ha=_NESSUNA),
+    Marchio(
+        "nio",
+        "NIO",
+        "nio",
+        {},
+        "Open Telematics for NIO (HACS)",
+        "https://github.com/nicolasvangeluwe/nio-home-assistant",
+    ),
     Marchio(
         "nissan",
         "Nissan",
@@ -210,6 +217,8 @@ MARCHI: tuple[Marchio, ...] = (
     Marchio(
         "skoda",
         "Škoda",
+        "skoda",
+        {},
         ha="MyŠkoda, o l'integrazione ufficiale Škoda di Home Assistant",
         link="https://github.com/skodaconnect/homeassistant-myskoda",
     ),
@@ -248,7 +257,9 @@ MARCHI: tuple[Marchio, ...] = (
         "https://github.com/robinostlund/homeassistant-volkswagencarnet",
     ),
     Marchio("volvo", "Volvo", "volvo", {}, "Volvo (integrazione ufficiale di Home Assistant)", HA + "volvo"),
-    Marchio("xpeng", "Xpeng", ha=_NESSUNA),
+    Marchio(
+        "xpeng", "Xpeng", "xpeng", {}, "Xpeng via Enode (HACS)", "https://github.com/mnordseth/xpeng-homeassistant"
+    ),
     Marchio("zeekr", "Zeekr", "zeekr", {}, "Zeekr EV (HACS)", "https://github.com/Fryyyyy/zeekr_homeassistant"),
 )
 

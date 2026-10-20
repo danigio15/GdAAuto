@@ -1055,6 +1055,118 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
+## Škoda — skodaconnect/myskoda e skodaconnect/homeassistant-myskoda, licenza MIT
+
+<https://github.com/skodaconnect/myskoda> · <https://github.com/skodaconnect/homeassistant-myskoda>
+
+Da myskoda: gli indirizzi del cloud MyŠkoda, del login identity.vwgroup.io e
+delle statistiche di ricarica CARIAD, il client id dell'app, lo scope,
+l'indirizzo di ritorno `myskoda://redirect/login/`, lo scambio del codice e il
+rinnovo, i percorsi di garage, stato, ricarica, autonomia, clima,
+connessione, posizione, tagliando, spie, viaggi, S-PIN e comandi, i corpi dei
+comandi, i servizi e i nomi e i valori dei campi; i payload d'esempio delle
+prove vengono dai suoi fixture. Da homeassistant-myskoda: quali servizi
+servono a ogni comando, il limite di ricarica, il contachilometri da
+tagliando e spie, il cavo dal clima. GdAAuto non compila il modulo di login:
+usa solo lo scambio del codice e il rinnovo. Il codice di GdAAuto
+(`marche/skoda/`) è scritto da capo.
+
+```
+MIT License
+
+Copyright 2024 Frederick Gnodtke
+Copyright (c) 2026 The MySkoda Authors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
+## NIO — nicolasvangeluwe/nio-home-assistant e genelee26/ha-nio, licenza MIT
+
+<https://github.com/nicolasvangeluwe/nio-home-assistant> · <https://github.com/genelee26/ha-nio>
+
+Da nio-home-assistant: gli indirizzi della NIO Open Telematics API (OAuth e
+telematica), gli ambiti in sola lettura, la busta delle risposte, i nomi, le
+scale e gli scarti dei campi, la pausa fra le richieste, il rallentamento con
+`Retry-After`, la lettura di `soc_status/changes` e i payload d'esempio delle
+prove. Da ha-nio: il significato dei campi di serratura, porte e finestrini.
+Il codice di GdAAuto (`marche/nio/`) è scritto da capo.
+
+```
+MIT License
+
+Copyright (c) 2026 Nicolas Vangeluwe
+Copyright (c) 2026 genelee26
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
+## Xpeng — mnordseth/xpeng-homeassistant (MIT), via Enode
+
+<https://github.com/mnordseth/xpeng-homeassistant>
+
+Da xpeng-homeassistant: gli indirizzi di Enode (token `client_credentials` e
+veicoli) e la forma del veicolo Enode. decline27/Xpeng (GPL-3.0) e
+OldSmurf56/xpeng (senza licenza) sono stati guardati solo per i fatti del
+protocollo Enode (collegamento dell'utente, comando di ricarica, stato delle
+azioni); nessun codice copiato. Il codice di GdAAuto (`marche/xpeng/`) è
+scritto da capo.
+
+```
+MIT License
+
+Copyright (c) 2019 - 2025  Magnus Nordseth (@mnordseth)
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
 ## Tesla — la documentazione ufficiale
 
 La Fleet API è documentata da Tesla su <https://developer.tesla.com/docs/fleet-api>.
