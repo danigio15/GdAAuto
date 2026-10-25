@@ -522,7 +522,7 @@ class GdaautoConfigFlow(config_entry_oauth2_flow.AbstractOAuth2FlowHandler, doma
                 # altro login…), e senza quello non si sa cosa rifare. Si mostra e si scrive.
                 motivo = str(err)
                 self.logger.warning("Login nel browser rifiutato: %s", motivo)
-                errori["base"] = "codice_motivo" if motivo else "codice"
+                errori["base"] = "codice"
             except ErroreMarca as err:
                 errori["base"] = _errore(err)
             else:
@@ -538,7 +538,7 @@ class GdaautoConfigFlow(config_entry_oauth2_flow.AbstractOAuth2FlowHandler, doma
                 "link": self._dispositivo_login.link,
                 "marchio": self._nome_marchio,
                 "nota": self._nota(modulo),
-                "motivo": motivo,
+                "motivo": f"⚠️ {motivo}\n\n" if motivo else "",
             },
         )
 

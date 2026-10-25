@@ -96,7 +96,7 @@
       },
       "browser": {
         "title": "Entra nel tuo account {marchio}",
-        "description": "{nota}\n\nApri [questo link]({link}) ed entra col tuo account {marchio}. Alla fine il browser prova ad aprire un indirizzo dell'app e non ci riesce, oppure mostra una pagina vuota: è giusto così. Copia quell'indirizzo (sul computer lo trovi negli strumenti per sviluppatori, F12, scheda **Rete**) e incollalo qui. Va bene anche solo il codice.\n\nIl codice vale pochi minuti. Email e password restano nel tuo browser: GdAAuto non le vede.",
+        "description": "{motivo}{nota}\n\nApri [questo link]({link}) ed entra col tuo account {marchio}. Alla fine il browser prova ad aprire un indirizzo dell'app e non ci riesce, oppure mostra una pagina vuota: è giusto così. Copia quell'indirizzo (sul computer lo trovi negli strumenti per sviluppatori, F12, scheda **Rete**) e incollalo qui. Va bene anche solo il codice.\n\nIl codice vale pochi minuti. Email e password restano nel tuo browser: GdAAuto non le vede.",
         "data": {
           "codice": "Indirizzo o codice"
         }
@@ -115,8 +115,7 @@
       "codice_inviato": "Ti abbiamo mandato un codice di verifica (per email o SMS): scrivilo nel campo «Codice» e invia di nuovo.",
       "codice_sbagliato": "Il codice di verifica non va o è scaduto: controllalo, o lascia il campo vuoto per riceverne uno nuovo.",
       "file": "Il file caricato non è un certificato o una chiave che si apre (PEM, DER, o PKCS#12 senza password).",
-      "pin": "Il PIN non è quello giusto: controllalo nell'app, oppure lascialo vuoto e GdAAuto leggerà l'auto senza comandarla.",
-      "codice_motivo": "Il codice non è stato accettato: {motivo}. Riapri il link, rifai il login e incolla subito l'indirizzo nuovo (il codice vale una volta sola e per pochi minuti)."
+      "pin": "Il PIN non è quello giusto: controllalo nell'app, oppure lascialo vuoto e GdAAuto leggerà l'auto senza comandarla."
     },
     "abort": {
       "already_configured": "Questa auto o questo account ci sono già.",
