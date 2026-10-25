@@ -11,7 +11,9 @@ entra lì con email e password, che GdAAuto non vede. Alla fine il login
 rimanda a ``cupra://oauth-callback?code=…`` (o ``seat://…``), che il browser
 non sa aprire: quell'indirizzo, o solo il codice, si incolla in GdAAuto.
 I token che ne escono ruotano a ogni rinnovo, e si salvano nella voce senza
-ricaricarla. L'S-PIN dell'app, facoltativo, serve solo a chiudere e aprire.
+ricaricarla. Se OLA rifiuta il codice, l'app CUPRA ha una seconda strada:
+lo stesso scambio sul login del gruppo, col segreto dell'app (come pycupra).
+L'S-PIN dell'app, facoltativo, serve solo a chiudere e aprire.
 
 Si legge tutto quello che il cloud dà (batteria, autonomie, ricarica, limite,
 clima, serrature, portiere, finestrini, posizione, chilometri, consumo
@@ -58,22 +60,48 @@ CAMPI: tuple[Campo, ...] = (Campo(CONF_PIN, obbligatorio=False, segreto=True),)
 
 NOTA = {
     "it": (
-        "Si entra dal browser, con l'account dell'app My CUPRA o My SEAT: GdAAuto non vede la password. "
-        "Il **PIN** è l'S-PIN dell'app, serve solo a chiudere e aprire (puoi scriverlo poi nelle opzioni). "
-        "Alla fine del login il browser prova ad aprire un indirizzo che inizia con `cupra://` o `seat://` e "
-        "si ferma: copia quell'indirizzo (se la barra non lo mostra, apri gli strumenti per sviluppatori, "
-        "scheda «Rete», e cercalo lì) o solo il codice dopo «code=», e incollalo qui. "
-        "Attenzione: da giugno 2026 il cloud di SEAT e CUPRA può rifiutare le app non ufficiali "
-        "(Firebase App Check); in quel caso GdAAuto lo dice e conviene la strada di Home Assistant."
+        "Si entra con l'account dell'app **My CUPRA** o **My SEAT**: email e password le scrivi sul sito "
+        "del gruppo Volkswagen, GdAAuto non le vede.\n\n"
+        "**PIN** (facoltativo): è l'S-PIN dell'app, serve solo a chiudere e aprire l'auto. "
+        "Puoi lasciarlo vuoto e scriverlo poi nelle opzioni.\n\n"
+        "**Cosa fare, meglio da un computer (Chrome, Edge o Firefox):**\n"
+        "1. Il link per entrare è nella pagina dopo il PIN. Tieni aperta questa finestra di GdAAuto fino alla fine.\n"
+        "2. Apri il link in una scheda nuova e, **prima di entrare**, premi **F12** "
+        "(su Mac Cmd+Opzione+I) e scegli la scheda **Rete** (Network).\n"
+        "3. Entra con email e password dell'app e accetta, se te lo chiede.\n"
+        "4. Alla fine la pagina resta bianca o dice che non può aprire l'indirizzo: è giusto così. "
+        "In **Rete** cerca la riga che contiene `oauth-callback` (scrivilo nel filtro), aprila e copia "
+        "l'indirizzo intero, quello che inizia con `cupra://oauth-callback?code=` (o `seat://`).\n"
+        "5. Torna su GdAAuto e incollalo, **subito**: il codice vale una volta sola e per pochi minuti. "
+        "Va bene anche solo la parte dopo `code=`.\n\n"
+        "Se dice che il codice non va: riapri il link della **stessa** finestra di GdAAuto e rifai dal punto 2 "
+        "(un link vecchio o di un'altra prova non vale). Dal telefono è difficile, perché Safari e Chrome "
+        "non mostrano la scheda Rete: usa un computer.\n\n"
+        "Da giugno 2026 il cloud di SEAT e CUPRA può bloccare le app non ufficiali (Firebase App Check). "
+        "Se GdAAuto dice «App Check», il login è giusto ma il cloud non risponde: usa l'integrazione di "
+        "Home Assistant."
     ),
     "en": (
-        "You sign in from the browser, with your My CUPRA or My SEAT app account: GdAAuto never sees the "
-        "password. The **PIN** is the app S-PIN, only needed to lock and unlock (you can set it later in the "
-        "options). At the end of the login the browser tries to open an address starting with `cupra://` or "
-        "`seat://` and stops: copy that address (if the address bar does not show it, open the developer tools, "
-        "“Network” tab, and find it there) or just the code after “code=”, and paste it here. "
-        "Warning: since June 2026 the SEAT and CUPRA cloud may reject unofficial apps (Firebase App Check); "
-        "if so, GdAAuto tells you and the Home Assistant route is the better choice."
+        "You sign in with your **My CUPRA** or **My SEAT** app account: you type email and password on the "
+        "Volkswagen group site, GdAAuto never sees them.\n\n"
+        "**PIN** (optional): the app S-PIN, only needed to lock and unlock the car. "
+        "You can leave it empty and set it later in the options.\n\n"
+        "**What to do, best from a computer (Chrome, Edge or Firefox):**\n"
+        "1. The sign-in link is on the page after the PIN. Keep this GdAAuto window open until the end.\n"
+        "2. Open the link in a new tab and, **before signing in**, press **F12** "
+        "(Cmd+Option+I on Mac) and pick the **Network** tab.\n"
+        "3. Sign in with the app email and password and accept, if asked.\n"
+        "4. In the end the page stays blank or says it cannot open the address: that is expected. "
+        "In **Network** look for the row containing `oauth-callback` (type it in the filter), open it and copy "
+        "the whole address, the one starting with `cupra://oauth-callback?code=` (or `seat://`).\n"
+        "5. Go back to GdAAuto and paste it **right away**: the code works only once and for a few minutes. "
+        "The part after `code=` alone is fine too.\n\n"
+        "If it says the code does not work: open the link of the **same** GdAAuto window again and redo from "
+        "step 2 (an old link, or one from another attempt, does not work). From a phone it is hard, because "
+        "Safari and Chrome do not show the Network tab: use a computer.\n\n"
+        "Since June 2026 the SEAT and CUPRA cloud may block unofficial apps (Firebase App Check). "
+        "If GdAAuto says «App Check», the login is right but the cloud does not answer: use the Home "
+        "Assistant integration."
     ),
 }
 

@@ -23,6 +23,8 @@ IDENTITA = "https://identity.vwgroup.io"
 
 #: Dove si scambia il codice del login, e si rinnovano i token.
 PERCORSO_TOKEN = "/authorization/api/v1/token"
+#: La seconda strada dell'app CUPRA: lo stesso scambio sul login del gruppo, col segreto.
+PERCORSO_TOKEN_IDENTITA = "/oidc/v1/token"
 
 SCOPE = "openid profile nickname birthdate phone"
 
