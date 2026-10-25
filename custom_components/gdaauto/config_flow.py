@@ -511,12 +511,17 @@ class GdaautoConfigFlow(config_entry_oauth2_flow.AbstractOAuth2FlowHandler, doma
         modulo = self._modulo()
         assert self._dispositivo_login is not None
         errori: dict[str, str] = {}
+        motivo = ""
         if user_input is not None:
             try:
                 accesso = await modulo.completa_browser(
                     self.hass, self._dati, self._dispositivo_login, str(user_input["codice"]).strip()
                 )
-            except ErroreCredenziali:
+            except ErroreCredenziali as err:
+                # «Il codice non va»: il perché lo dice il cloud (scaduto, gia' usato, di un
+                # altro login…), e senza quello non si sa cosa rifare. Si mostra e si scrive.
+                motivo = str(err)
+                self.logger.warning("Login nel browser rifiutato: %s", motivo)
                 errori["base"] = "codice"
             except ErroreMarca as err:
                 errori["base"] = _errore(err)
@@ -533,6 +538,7 @@ class GdaautoConfigFlow(config_entry_oauth2_flow.AbstractOAuth2FlowHandler, doma
                 "link": self._dispositivo_login.link,
                 "marchio": self._nome_marchio,
                 "nota": self._nota(modulo),
+                "motivo": f"⚠️ {motivo}\n\n" if motivo else "",
             },
         )
 

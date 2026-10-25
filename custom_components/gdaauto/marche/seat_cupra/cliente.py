@@ -43,7 +43,7 @@ import aiohttp
 from ...vettura import StatoVettura, Vettura
 from ..errori import CodiceSbagliato, ErroreApi, ErroreComando, ErroreCredenziali, ErrorePin, ErroreRete
 from . import dati
-from .app import APP, OLA, PERCORSO_TOKEN, AppMarchio, lingua_cloud
+from .app import APP, IDENTITA, OLA, PERCORSO_TOKEN, PERCORSO_TOKEN_IDENTITA, AppMarchio, lingua_cloud
 from .login import rivendicazioni, scadenza_del_jwt, sub_del_jwt
 
 _LOGGER = logging.getLogger(__name__)
@@ -240,8 +240,23 @@ class ClienteSeatCupra:
             "code": codice,
             "code_verifier": verifier,
         }
-        token = await self._token(corpo, "scambio del codice", codice=True)
-        self._conserva(token, nuovo=True)
+        try:
+            token = await self._token(corpo, "scambio del codice", codice=True)
+            via = "ola"
+        except (CodiceSbagliato, ErroreApi) as err:
+            if not self.app.client_secret or (isinstance(err, ErroreApi) and err.codice != "app_check"):
+                raise
+            # La seconda strada dell'app CUPRA: il login del gruppo, col segreto dell'app. Serve
+            # quando OLA rifiuta il codice (o lo blocca con App Check) ma il codice è buono.
+            _LOGGER.warning("%s: OLA rifiuta il codice (%s), si prova il login del gruppo", self.app.nome, err)
+            try:
+                token = await self._token(
+                    {**corpo, "client_secret": self.app.client_secret}, "scambio del codice", codice=True, identita=True
+                )
+            except CodiceSbagliato as err2:
+                raise CodiceSbagliato(f"{err} — e anche il login del gruppo: {err2}") from err2
+            via = "identita"
+        self._conserva(token, nuovo=True, via=via)
         return dict(self.sessione)
 
     async def accedi(self) -> None:
@@ -260,24 +275,29 @@ class ClienteSeatCupra:
         }
         if self.app.client_secret:
             corpo["client_secret"] = self.app.client_secret
-        self._conserva(await self._token(corpo, "rinnovo dei token"))
+        identita = self.sessione.get("via") == "identita"
+        self._conserva(await self._token(corpo, "rinnovo dei token", identita=identita))
 
-    async def _token(self, corpo: dict[str, str], cosa: str, *, codice: bool = False) -> dict[str, Any]:
-        """Una domanda all'indirizzo dei token di OLA; gli errori, chiamati per quello che vogliono dire."""
+    async def _token(
+        self, corpo: dict[str, str], cosa: str, *, codice: bool = False, identita: bool = False
+    ) -> dict[str, Any]:
+        """Una domanda all'indirizzo dei token (di OLA, o del login del gruppo); gli errori, chiamati
+        per quello che vogliono dire."""
         intestazioni = {
             **self._intestazioni_app(),
             "Content-Type": "application/x-www-form-urlencoded; charset=utf-8",
             "X-Platform": "Android",
+            # Come l'app vera: la WebView del login dice di quale app è.
+            "x-requested-with": self.app.nome_app,
         }
-        http, testo = await self._richiesta(
-            "POST", f"{self._ola}{PERCORSO_TOKEN}", cosa, headers=intestazioni, data=corpo
-        )
+        url = f"{IDENTITA}{PERCORSO_TOKEN_IDENTITA}" if identita else f"{self._ola}{PERCORSO_TOKEN}"
+        http, testo = await self._richiesta("POST", url, cosa, headers=intestazioni, data=corpo)
         if http == 200:
             token = _token_da_json(_json(testo))
             if not token.get("access_token"):
                 raise ErroreRete(f"{cosa}: {self.app.nome} non ha dato i token")
             return token
-        if http == 403:
+        if http == 403 and not identita:
             # Il punto dei token non dice 403 per una password: è il blocco delle app non ufficiali.
             raise ErroreApi(cosa, "app_check", MESSAGGIO_APP_CHECK, http)
         if http >= 500 or http == 429:
@@ -289,7 +309,7 @@ class ClienteSeatCupra:
             raise ErroreCredenziali(f"{self.app.nome} non rinnova più l'accesso ({motivo}): rientra dal browser")
         raise ErroreApi(cosa, None, _motivo(testo), http)
 
-    def _conserva(self, token: dict[str, Any], *, nuovo: bool = False) -> None:
+    def _conserva(self, token: dict[str, Any], *, nuovo: bool = False, via: str | None = None) -> None:
         accesso = str(token.get("access_token") or "")
         durata = dati._numero(token.get("expires_in"))
         if durata is None:
@@ -312,6 +332,9 @@ class ClienteSeatCupra:
             "scade": (datetime.now(UTC) + timedelta(seconds=max(60.0, durata))).isoformat(),
             "user_id": utente,
         }
+        # Da dove sono venuti i token (OLA o il login del gruppo): lì si rinnovano.
+        if via := via or self.sessione.get("via"):
+            sessione["via"] = via
         chi = rivendicazioni(id_token)
         if nome := str(chi.get("email") or chi.get("nickname") or chi.get("name") or self.sessione.get("chi") or ""):
             sessione["chi"] = nome

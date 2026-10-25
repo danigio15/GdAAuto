@@ -1,0 +1,33 @@
+name: Il rilascio
+
+# HACS fa vedere «Aggiornamento disponibile» quando c'e' un rilascio nuovo su
+# GitHub. Qui il rilascio si crea da solo: quando su main arriva un numero
+# nuovo in manifest.json, nasce il tag «v<versione>» col suo rilascio. Se il
+# tag c'e' gia', non si fa niente.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "custom_components/gdaauto/manifest.json"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  rilascia:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Crea il rilascio della versione nuova
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          versione=$(python3 -c 'import json;print(json.load(open("custom_components/gdaauto/manifest.json"))["version"])')
+          test -n "$versione"
+          if gh release view "v$versione" >/dev/null 2>&1; then
+            echo "v$versione c'e' gia'"
+            exit 0
+          fi
+          gh release create "v$versione" --target "$GITHUB_SHA" --title "GdAAuto $versione" --generate-notes

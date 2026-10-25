@@ -291,6 +291,10 @@ class FintoCloud:
     #: il blocco Firebase App Check: le letture e i token rispondono 403
     app_check: bool = False
     token_app_check: bool = False
+    #: OLA rifiuta ogni codice (come capita ad alcuni account CUPRA): resta il login del gruppo
+    ola_rifiuta_codice: bool = False
+    #: le richieste ai token: (dove, grant_type)
+    token_chiesti: list[tuple[str, str]] = field(default_factory=list)
     pin: str = "1234"
     sec_token: set[str] = field(default_factory=set)
     rifiuta_comando: bool = False
@@ -302,6 +306,7 @@ class FintoCloud:
         app = web.Application()
         app.router.add_get("/oidc/v1/authorize", self._autorizza)
         app.router.add_post("/authorization/api/v1/token", self._token)
+        app.router.add_post("/oidc/v1/token", self._token_identita)
         app.router.add_route("*", "/{resto:.*}", self._api)
         return app
 
@@ -334,7 +339,11 @@ class FintoCloud:
         f = await r.post()
         app = next(a for a in APP.values() if a.client_id == f["client_id"])
         assert r.headers["app-brand"] == app.marchio and r.headers["User-Agent"] == app.user_agent
+        assert r.headers["x-requested-with"] == app.nome_app
+        self.token_chiesti.append(("ola", str(f["grant_type"])))
         if f["grant_type"] == "authorization_code":
+            if self.ola_rifiuta_codice:
+                return web.json_response({"error": "invalid_request", "error_description": "bad client"}, status=400)
             sfida_, client = self.codici.pop(str(f["code"]), ("", ""))
             if client != app.client_id or sfida(str(f["code_verifier"])) != sfida_:
                 return web.json_response({"error": "invalid_grant"}, status=400)
@@ -349,6 +358,23 @@ class FintoCloud:
             return web.json_response({"error": "invalid_grant", "error_description": "Token expired"}, status=400)
         self.rinnovi += 1
         return web.json_response(self._rilascia(app.client_id, camel=True))
+
+    async def _token_identita(self, r: web.Request) -> web.Response:
+        """Il login del gruppo: lo stesso scambio, ma col segreto dell'app CUPRA."""
+        f = await r.post()
+        app = next(a for a in APP.values() if a.client_id == f["client_id"])
+        self.token_chiesti.append(("identita", str(f["grant_type"])))
+        if f.get("client_secret", "") != app.client_secret or not app.client_secret:
+            return web.json_response({"error": "invalid_client"}, status=401)
+        if f["grant_type"] == "authorization_code":
+            sfida_, client = self.codici.pop(str(f["code"]), ("", ""))
+            if client != app.client_id or sfida(str(f["code_verifier"])) != sfida_:
+                return web.json_response({"error": "invalid_grant"}, status=400)
+            return web.json_response(self._rilascia(app.client_id, camel=False))
+        if self.refresh_validi.pop(str(f["refresh_token"]), None) != app.client_id:
+            return web.json_response({"error": "invalid_grant"}, status=400)
+        self.rinnovi += 1
+        return web.json_response(self._rilascia(app.client_id, camel=False))
 
     # --- le auto ---------------------------------------------------------------------
 
@@ -405,7 +431,11 @@ async def cloud(socket_enabled: None) -> AsyncGenerator[FintoCloud]:
     await runner.setup()
     await web.TCPSite(runner, "127.0.0.1", 0).start()
     finto.url = f"http://127.0.0.1:{runner.addresses[0][1]}"
-    with patch.object(modulo_cliente, "OLA", finto.url), patch.object(login, "IDENTITA", finto.url):
+    with (
+        patch.object(modulo_cliente, "OLA", finto.url),
+        patch.object(login, "IDENTITA", finto.url),
+        patch.object(modulo_cliente, "IDENTITA", finto.url),
+    ):
         yield finto
     await runner.cleanup()
 
@@ -515,6 +545,32 @@ async def test_il_codice_sbagliato_o_rubato(cloud: FintoCloud) -> None:
             await c.scambia_codice(codice, pkce()[0])
         with pytest.raises(CodiceSbagliato):
             await c.scambia_codice("COD-INVENTATO", "x")
+
+
+async def test_cupra_quando_ola_rifiuta_il_codice(cloud: FintoCloud) -> None:
+    cloud.ola_rifiuta_codice = True
+    salvati: list[dict[str, Any]] = []
+    async with aiohttp.ClientSession() as s:
+        c = await _cliente(s, salva=salvati.append)
+        # Il codice è passato dal login del gruppo, e da lì si rinnova.
+        assert c.sessione["via"] == "identita" and salvati == [c.sessione]
+        assert cloud.token_chiesti == [("ola", "authorization_code"), ("identita", "authorization_code")]
+        c = ClienteSeatCupra(s, "cupra", {**c.sessione, "scade": "2000-01-01T00:00:00+00:00"}, salvati.append)
+        assert len(await c.vetture()) == 2
+        assert cloud.token_chiesti[-1] == ("identita", "refresh_token") and salvati[-1]["via"] == "identita"
+        # SEAT non ha la seconda strada: il codice rifiutato resta rifiutato.
+        with pytest.raises(CodiceSbagliato):
+            await _cliente(s, "seat")
+        # Un codice falso non passa da nessuna delle due, e il messaggio le dice tutte e due.
+        with pytest.raises(CodiceSbagliato, match="login del gruppo"):
+            await ClienteSeatCupra(s, "cupra").scambia_codice("COD-INVENTATO", "x")
+
+
+async def test_cupra_quando_app_check_blocca_lo_scambio(cloud: FintoCloud) -> None:
+    cloud.token_app_check = True
+    async with aiohttp.ClientSession() as s:
+        c = await _cliente(s)
+        assert c.sessione["via"] == "identita"
 
 
 async def test_i_guasti_non_chiedono_di_rientrare(cloud: FintoCloud) -> None:
