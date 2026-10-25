@@ -115,7 +115,8 @@
       "codice_inviato": "A verification code was sent to you (by email or SMS): type it in the “Code” field and submit again.",
       "codice_sbagliato": "The verification code is wrong or expired: check it, or leave the field empty to get a new one.",
       "file": "The uploaded file is not a certificate or a key that can be opened (PEM, DER, or PKCS#12 without a password).",
-      "pin": "The PIN is not correct: check it in the app, or leave it empty and GdAAuto will read the car without commanding it."
+      "pin": "The PIN is not correct: check it in the app, or leave it empty and GdAAuto will read the car without commanding it.",
+      "codice_motivo": "The code was not accepted: {motivo}. Open the link again, sign in and paste the new address right away (the code works once, for a few minutes)."
     },
     "abort": {
       "already_configured": "This car or account is already set up.",

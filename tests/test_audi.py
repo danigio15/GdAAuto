@@ -596,7 +596,9 @@ async def test_configurare_un_audi_dal_browser(hass: HomeAssistant, verso_il_fin
 
     # Un codice che Audi non accetta: si resta sul passo, con l'errore.
     r = await hass.config_entries.flow.async_configure(r["flow_id"], {"codice": "myaudi:///?code=FALSO"})
-    assert r["errors"] == {"base": "codice"}
+    # Il perché del rifiuto si vede nel modulo, non solo «il codice non va».
+    assert r["errors"] == {"base": "codice_motivo"}
+    assert r["description_placeholders"]["motivo"]
     finto.sfide["BUONO"] = q["code_challenge"][0]
     incollato = f"myaudi:///?code=BUONO&state={q['state'][0]}"
     r = await hass.config_entries.flow.async_configure(r["flow_id"], {"codice": incollato})

@@ -115,7 +115,8 @@
       "codice_inviato": "Ti abbiamo mandato un codice di verifica (per email o SMS): scrivilo nel campo «Codice» e invia di nuovo.",
       "codice_sbagliato": "Il codice di verifica non va o è scaduto: controllalo, o lascia il campo vuoto per riceverne uno nuovo.",
       "file": "Il file caricato non è un certificato o una chiave che si apre (PEM, DER, o PKCS#12 senza password).",
-      "pin": "Il PIN non è quello giusto: controllalo nell'app, oppure lascialo vuoto e GdAAuto leggerà l'auto senza comandarla."
+      "pin": "Il PIN non è quello giusto: controllalo nell'app, oppure lascialo vuoto e GdAAuto leggerà l'auto senza comandarla.",
+      "codice_motivo": "Il codice non è stato accettato: {motivo}. Riapri il link, rifai il login e incolla subito l'indirizzo nuovo (il codice vale una volta sola e per pochi minuti)."
     },
     "abort": {
       "already_configured": "Questa auto o questo account ci sono già.",
